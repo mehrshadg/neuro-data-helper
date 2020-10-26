@@ -3,7 +3,8 @@ import numpy as np
 import cifti
 from pandas import DataFrame
 
-from help.template import get_template
+from neuro_helper.template import get_template
+from neuro_helper.entity import TemplateName, Space
 
 
 def out_of(name, dir_from_last_part=True):
@@ -31,11 +32,11 @@ def out_of(name, dir_from_last_part=True):
     return file
 
 
-def find_shared_subjects(find_files, prepare_file_content, template_name, tasks, return_indices):
+def find_shared_subjects(find_files, prepare_file_content, template_name: TemplateName, space: Space, tasks, return_indices):
     all_ids = []
     subject_id_dict = {}
     for task in tasks:
-        files = find_files(task=task, template_name=template_name)
+        files = find_files(task=task, template_name=template_name, space=space)
         for file in files:
             scan_id, subj_ids = prepare_file_content(np.load(file, allow_pickle=True))
             all_ids += subj_ids
@@ -53,11 +54,11 @@ def find_shared_subjects(find_files, prepare_file_content, template_name, tasks,
         return shared_ids
 
 
-def generate_long_data(find_files, prepare_file_content, template_name):
+def generate_long_data(find_files, prepare_file_content, template_name: TemplateName, space: Space):
     mask, unique_networks, networks, regions, _ = get_template(template_name)
     long_data = None
     for task in ["Rest", "StoryM", "Motort", "Wrkmem"]:
-        files = find_files(task=task, template_name=template_name)
+        files = find_files(task=task, template_name=template_name, space=space)
         for file in files:
             scan_id, subj_ids, metric = prepare_file_content(np.load(file, allow_pickle=True))
             n_subj, n_regions = metric.shape
@@ -80,14 +81,14 @@ def generate_long_data(find_files, prepare_file_content, template_name):
     return df
 
 
-def build_single_topo_map(df, template_name):
+def build_single_topo_map(df: DataFrame, template_name: TemplateName, space: Space):
     """
     :param df: must only contains two columns: regions and values
-    :param template_lbl_prefix:
-    :param kwargs:
+    :param template_name:
+    :param space:
     :return:
     """
-    mask, _, networks, regions, brain_axis = get_template(template_name)
+    mask, _, networks, regions, brain_axis = get_template(template_name, space)
     topo = np.zeros((1, mask.size))
     values = df.values
     for reg, pc in values:

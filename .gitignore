@@ -1,1 +1,5 @@
 .idea
+env
+dist
+neuro_helper.egg-info
+build

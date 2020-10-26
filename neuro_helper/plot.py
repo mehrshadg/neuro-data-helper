@@ -2,8 +2,9 @@ import os
 import cifti
 import seaborn as sns
 
-from help.colormap import _cole_data, _sh7_data
-from help.template import get_template
+from neuro_helper.entity import TemplateName, Space
+from neuro_helper.colormap import _cole_data, _schaefer7_data
+from neuro_helper.template import get_template
 
 directory = "figures"
 sns.set_style("whitegrid")
@@ -20,9 +21,9 @@ PMC_colors_tuple = [(34 / 256, 45 / 256, 64 / 256, 1), (80 / 256, 54 / 256, 29 /
 font_scale = 1.1
 sns.set(font_scale=font_scale, style="whitegrid")
 template_meta_combination = [
-    ("sh2007", "pc"),
-    ("cole", "pce"),
-    ("cole", "pcr")
+    (TemplateName.SCHAEFER_200_7, "pc"),
+    (TemplateName.COLE_360, "pce"),
+    (TemplateName.COLE_360, "pcr")
 ]
 
 net_meta_C = {"pc": "C", "pce": "EC", "pcr": "RC"}
@@ -45,34 +46,24 @@ def savemap(name, data, brain_mask, *axes):
     return os.getcwd() + os.sep + file_path
 
 
-def make_net_palette(net_order=None, template_name="cole"):
-    if template_name == "cole":
+def make_net_palette(template_name: TemplateName):
+    if template_name == TemplateName.COLE_360:
         return _cole_data
+    elif template_name == TemplateName.SCHAEFER_200_7:
+        return _schaefer7_data
     else:
-        return _sh7_data
-    # _, unique_networks, _, regions, _ = get_template(template_name)
-    # n = int(len(colormap) / len(unique_networks))
-    # palette = {net: colormap[i * n] for i, net in enumerate(unique_networks)}
-    #
-    # if net_order is None:
-    #     return palette
-    #
-    # ordered_palette = [None] * len(net_order)
-    # for name, color in palette.items():
-    #     index = net_order.index(name)
-    #     ordered_palette[index] = color
-    # return ordered_palette
+        raise ValueError(f"{template_name} has no network template.")
 
 
 def make_lh_pallete(palette):
     return [palette[0], ] * 7 + [palette[-1], ] * 5
 
 
-def net_labels(tpt_name, two_line=True):
-    if tpt_name == "cole":
+def net_labels(tpt_name: TemplateName, two_line=True):
+    if tpt_name == TemplateName.COLE_360:
         names = ['Visual1', 'Visual2', 'Auditory', 'Somatomotor', 'Dorsal\nAttention', 'Posterior\nMultimodal',
                 'Ventral\nMultimodal', 'Orbito\nAffective', 'Language', 'Cingulo\nOpercular', 'FPC', 'DMN']
-    elif tpt_name == "sh2007":
+    elif tpt_name == TemplateName.SCHAEFER_200_7:
         names = ['Visual', 'Somatomotor', 'Dorsal\nAttention', 'Salience', 'Limbic', 'FPC', 'DMN']
     else:
         raise ValueError(f"{tpt_name} not defined in net_labels")

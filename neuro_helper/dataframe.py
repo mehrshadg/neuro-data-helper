@@ -2,7 +2,9 @@ import itertools
 import pandas as pd
 import numpy as np
 from matplotlib.cbook import boxplot_stats
-from help.statistics import percent_change, icc
+
+from neuro_helper.entity import Space, TemplateName
+from neuro_helper.statistics import percent_change, icc
 import pandas_flavor as pf
 
 
@@ -77,12 +79,12 @@ def normalize(x, columns, new_min=0, new_max=1):
 
 
 @pf.register_dataframe_method
-def add_topo(df, template_name, *args):
-    from help.template import get_topo_dataframe
+def add_topo(df, template_name: TemplateName, space: Space, *args):
+    from neuro_helper.template import get_topo_dataframe
     new_df = df
     has_net = "network" in df.columns
     for arg in args:
-        topo = get_topo_dataframe(arg, template_name)
+        topo = get_topo_dataframe(arg, template_name, space)
         if has_net:
             new_df = pd.merge(new_df, topo, on=["region", "network"])
         else:
@@ -204,8 +206,8 @@ def task_order(with_rest=True):
     return out + ["StoryM", "Motort", "Wrkmem"]
 
 
-def get_net(net_lbl, template_name):
-    if template_name == "cole":
+def get_net(net_lbl, template_name: TemplateName):
+    if template_name == TemplateName.COLE_360:
         if net_lbl == "pce":
             return {"P": ["Visual1", "Visual2", "Auditory", "Somatomotor"],
                     "EC": ["DorsalAttention", "PosteriorMultimodal", "VentralMultimodal", "OrbitoAffective",
@@ -213,22 +215,20 @@ def get_net(net_lbl, template_name):
         elif net_lbl == "pcr":
             return {"P": ["Visual1", "Visual2", "Auditory", "Somatomotor"],
                     "RC": ["CinguloOpercular", "Frontoparietal", "Default"]}
-    elif "sh" in template_name:
-        if "7" in template_name:
-            if net_lbl == "pc":
-                return {"P": ['Vis', 'SomMot', 'DorsAttn', 'SalVentAttn'],
-                        "C": ['Limbic', 'Cont', 'Default']}
+    elif template_name == TemplateName.SCHAEFER_200_7:
+        if net_lbl == "pc":
+            return {"P": ['Vis', 'SomMot', 'DorsAttn', 'SalVentAttn'],
+                    "C": ['Limbic', 'Cont', 'Default']}
 
-    raise ValueError(f"{template_name} {net_lbl} is not defined")
+    raise ValueError(f"{template_name} and {net_lbl} is not defined")
 
 
-def net_order(template_name):
-    if template_name == "cole":
+def net_order(template_name: TemplateName):
+    if template_name == TemplateName.COLE_360:
         return ["Visual1", "Visual2", "Auditory", "Somatomotor", "DorsalAttention", "PosteriorMultimodal",
                 "VentralMultimodal","OrbitoAffective", "Language", "CinguloOpercular", "Frontoparietal", "Default"]
-    elif "sh" in template_name:
-        if "7" in template_name:
-            return ['Vis', 'SomMot', 'DorsAttn', 'SalVentAttn', 'Limbic', 'Cont', 'Default']
+    elif template_name == TemplateName.SCHAEFER_200_7:
+        return ['Vis', 'SomMot', 'DorsAttn', 'SalVentAttn', 'Limbic', 'Cont', 'Default']
 
     raise Exception(f"{template_name} not defined")
 

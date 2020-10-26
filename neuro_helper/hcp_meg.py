@@ -3,15 +3,17 @@ from scipy.io import loadmat
 import glob
 import numpy as np
 
+from neuro_helper.entity import TemplateName
 
-def get_all_raw_files(mask_lbl, task_name, scan_id):
+
+def get_all_raw_files(tpt_name: TemplateName, task_name, scan_id):
     if task_name == "Rest":
         root_dir = "/group/northoff/share/mg/hcp/rest"
         task_name = "Restin"
     else:
         root_dir = "/group/northoff/share/mg/hcp/task"
 
-    files = glob.glob("%s/*_MEG_%s-%s_*[tr]megpreproc_rois-%s.mat" % (root_dir, scan_id, task_name, mask_lbl))
+    files = glob.glob(f"{root_dir}/*_MEG_{scan_id}-{task_name}_*[tr]megpreproc_rois-{tpt_name}.mat")
     files.sort()
 
     scans = {}

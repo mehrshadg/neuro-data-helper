@@ -41,25 +41,16 @@ def fir_filter_data(data, fs, order=None, min_cycles=4, max_freq_low=None, min_f
                            [1], data), freq_l, freq_h
 
 
-def calc_a_acf(ts, n_lag=None, fast=True):
-    if not n_lag:
-        n_lag = len(ts)
-    return stattools.acf(ts, nlags=n_lag, qstat=False, alpha=None, fft=fast)
+def welch_psd(data, freq_l, fs):
+    n_sample = data.shape[1]
+    n_fft = 2 ** np.ceil(np.log2(n_sample))
+    win_size = int(2 * 1.6 / freq_l * fs)
 
+    if win_size > n_sample:
+        return None, None
 
-def calc_a_acw(ts, n_lag=None, fast=True, is_acf=False):
-    acf = ts if is_acf else calc_a_acf(ts, n_lag, fast)
-    return 2 * np.argmax(acf < 0.5) - 1
-
-
-def calc_a_acz(ts, n_lag=None, fast=True, is_acf=False):
-    acf = ts if is_acf else calc_a_acf(ts, n_lag, fast)
-    return np.argmax(acf <= 0)
-
-
-def calc_a_acmi(ts, which, n_lag=None, fast=True, is_acf=False):
-    acf = ts if is_acf else calc_a_acf(ts, n_lag, fast)
-    return signal.argrelextrema(acf, np.less)[0][which - 1]
+    return signal.welch(data, fs=fs, nfft=n_fft, detrend=None,
+                        window="hanning", nperseg=win_size, noverlap=int(0.9 * win_size))
 
 
 def percent_change(base_cond, new_cond):
