@@ -4,7 +4,7 @@ from enum import Enum
 class Space(Enum):
     K8 = "8k"
     K32 = "32k"
-    K64 = "64k"
+    K59 = "64k"
 
     def __str__(self):
         return self.value

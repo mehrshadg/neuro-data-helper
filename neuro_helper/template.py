@@ -7,40 +7,38 @@ _loaded_templates = {}
 
 files = {
     TopoName.MEDIAL_WALL: {
-        Space.K8: "",
-        Space.K32: "files/Human.MedialWall_Conte69.32k_fs_LR.dlabel.nii",
-        Space.K64: ""
+        Space.K32: "files/hcp/topo.medial_wall.32k.dlabel.nii",
+        Space.K59: "files/hcp/topo.medial_wall.59k.dlabel.nii"
     },
     TopoName.T1T2: {
-        Space.K8: "",
-        Space.K32: "files/S1200.MyelinMap_BC_MSMAll.32k_fs_LR.dscalar.nii",
-        Space.K64: ""
+        Space.K32: "files/hcp/topo.t1t2.32k.dscalar.nii",
+        Space.K59: "files/hcp/topo.t1t2.59k.dscalar.nii"
     },
     TopoName.ANT_POST_GRADIENT: {
-        Space.K8: "",
-        Space.K32: "files/S1200.midthickness_MSMAll.32k_fs_LR.coord.dscalar.nii",
-        Space.K64: ""
+        Space.K32: "files/hcp/topo.coord.32k.dscalar.nii",
+        Space.K59: "files/hcp/topo.coord.59k.dscalar.nii"
     },
     TopoName.MARGULIES_GRADIENT: {
         Space.K8: "",
-        Space.K32: "files/gradient_map_2016.32k.dscalar.nii",
-        Space.K64: ""
+        Space.K32: "files/hcp/topo.margulies2016.32k.dscalar.nii",
+        Space.K59: "files/hcp/topo.margulies2016.59k.dscalar.nii"
     },
     TemplateName.SCHAEFER_200_7: {
-        Space.K32: "files/Schaefer2018_200Parcels_7Networks_order.dlabel.nii",
-        Space.K64: ""
+        Space.K32: "files/hcp/template.schaefer2018.2007.32k.dlabel.nii",
+        Space.K59: "files/hcp/template.schaefer2018.2007.59k.dlabel.nii"
     },
     TemplateName.SCHAEFER_200_17: {
-        Space.K32: "",
-        Space.K64: ""
+        Space.K32: "files/hcp/template.schaefer2018.20017.32k.dlabel.nii",
+        Space.K59: "files/hcp/template.schaefer2018.20017.59k.dlabel.nii"
     },
     TemplateName.COLE_360: {
-        Space.K32: "files/CortexColeAnticevic_NetPartition_wSubcorGSR_parcels_LR.dlabel.nii",
-        Space.K64: ""
+        Space.K4: "files/hcp/template.cole.36012.4k.dlabel.nii",
+        Space.K32: "files/hcp/template.cole.36012.32k.dlabel.nii",
+        Space.K59: "files/hcp/template.cole.36012.59k.dlabel.nii"
     },
     TemplateName.WANG: {
-        Space.K32: "",
-        Space.K64: "files/HCP_S1200_997_tfMRI_ALLTASKS_level2_cohensd_hp200_s4_MSMAll.dscalar.nii"
+        Space.K32: "files/hcp/template.wang2015.32k.dlabel.nii",
+        Space.K59: "files/hcp/template.wang2015.59k.dlabel.nii"
     }
 }
 
@@ -114,6 +112,22 @@ def _get_coordinates_topo(template_name: TemplateName, space: Space):
     return _get_or_load(f"{TopoName.ANT_POST_GRADIENT}:{template_name}:{space}", load)
 
 
+def parcellate(tpt_name: TemplateName, space: Space, voxels):
+    mask, _, networks, regions, _ = get_template(tpt_name, space)
+
+    if voxels.shape[0] > mask.size:
+        print("INFO: mask is smaller than data. Probably sub-cortex is in the data."
+              " Padding mask with 0s (assuming bg=0)")
+        mask = np.append(mask, np.zeros(voxels.shape[0] - mask.size))
+    elif voxels.shape[0] < mask.size:
+        raise ValueError("Mask size is smaller than data size. Something is fishy here!")
+
+    output = np.zeros((len(regions), voxels.shape[1]))
+    for ri in range(len(regions)):
+        output[ri] = voxels[mask == ri + 1].mean()
+    return output
+
+
 def get_template(name: TemplateName, space: Space):
     return _loaded_templates.get(f"{name}:{space}")
 
@@ -150,3 +164,56 @@ def load_cole_template(space: Space):
         unique_networks = np.unique(networks)
         _loaded_templates[name] = mask, unique_networks, networks, regions, brain_axis
     return name
+
+
+def load_wang_template(space: Space):
+    name = f"{TemplateName.WANG}:{space}"
+    if name not in _loaded_templates:
+        mask, (lbl_axis, brain_axis) = cifti.read(files[TemplateName.COLE_360][space])
+        mask = np.squeeze(mask)
+
+        lbl_dict = lbl_axis.label.item()
+        regions = np.asarray([lbl_dict[x][0] for x in np.unique(mask)])[1:]
+        networks = ["".join(x.split("_")[0].split("-")[:-1]) for x in regions]
+        unique_networks = np.unique(networks)
+        _loaded_templates[name] = mask, unique_networks, networks, regions, brain_axis
+    return name
+
+
+def get_net(net_lbl, template_name: TemplateName):
+    if template_name == TemplateName.COLE_360:
+        if net_lbl == "pce":
+            return {"P": ["Visual1", "Visual2", "Auditory", "Somatomotor"],
+                    "EC": ["DorsalAttention", "PosteriorMultimodal", "VentralMultimodal", "OrbitoAffective",
+                           "Language", "CinguloOpercular", "Frontoparietal", "Default"]}
+        elif net_lbl == "pcr":
+            return {"P": ["Visual1", "Visual2", "Auditory", "Somatomotor"],
+                    "RC": ["CinguloOpercular", "Frontoparietal", "Default"]}
+    elif template_name == TemplateName.SCHAEFER_200_7:
+        if net_lbl == "pc":
+            return {"P": ['Vis', 'SomMot', 'DorsAttn', 'SalVentAttn'],
+                    "C": ['Limbic', 'Cont', 'Default']}
+
+    raise ValueError(f"{template_name} and {net_lbl} is not defined")
+
+
+def net_order(template_name: TemplateName):
+    if template_name == TemplateName.COLE_360:
+        return ["Visual1", "Visual2", "Auditory", "Somatomotor", "DorsalAttention", "PosteriorMultimodal",
+                "VentralMultimodal", "OrbitoAffective", "Language", "CinguloOpercular", "Frontoparietal", "Default"]
+    elif template_name == TemplateName.SCHAEFER_200_7:
+        return ['Vis', 'SomMot', 'DorsAttn', 'SalVentAttn', 'Limbic', 'Cont', 'Default']
+
+    raise Exception(f"{template_name} not defined")
+
+
+def net_labels(tpt_name: TemplateName, two_line=True):
+    if tpt_name == TemplateName.COLE_360:
+        names = ['Visual1', 'Visual2', 'Auditory', 'Somatomotor', 'Dorsal\nAttention', 'Posterior\nMultimodal',
+                 'Ventral\nMultimodal', 'Orbito\nAffective', 'Language', 'Cingulo\nOpercular', 'FPC', 'DMN']
+    elif tpt_name == TemplateName.SCHAEFER_200_7:
+        names = ['Visual', 'Somatomotor', 'Dorsal\nAttention', 'Salience', 'Limbic', 'FPC', 'DMN']
+    else:
+        raise ValueError(f"{tpt_name} not defined in net_labels")
+
+    return names if two_line else [x.replace("\n", " ") for x in names]

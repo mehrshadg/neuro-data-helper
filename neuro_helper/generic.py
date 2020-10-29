@@ -2,7 +2,6 @@ import os
 import numpy as np
 import cifti
 from pandas import DataFrame
-
 from neuro_helper.template import get_template
 from neuro_helper.entity import TemplateName, Space
 
@@ -32,7 +31,9 @@ def out_of(name, dir_from_last_part=True):
     return file
 
 
-def find_shared_subjects(find_files, prepare_file_content, template_name: TemplateName, space: Space, tasks, return_indices):
+def find_shared_subjects(find_files, prepare_file_content,
+                         template_name: TemplateName, space: Space,
+                         tasks, return_indices):
     all_ids = []
     subject_id_dict = {}
     for task in tasks:
@@ -55,7 +56,7 @@ def find_shared_subjects(find_files, prepare_file_content, template_name: Templa
 
 
 def generate_long_data(find_files, prepare_file_content, template_name: TemplateName, space: Space):
-    mask, unique_networks, networks, regions, _ = get_template(template_name)
+    mask, unique_networks, networks, regions, _ = get_template(template_name, space)
     long_data = None
     for task in ["Rest", "StoryM", "Motort", "Wrkmem"]:
         files = find_files(task=task, template_name=template_name, space=space)

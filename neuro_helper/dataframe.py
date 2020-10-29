@@ -2,10 +2,9 @@ import itertools
 import pandas as pd
 import numpy as np
 from matplotlib.cbook import boxplot_stats
-
+import pandas_flavor as pf
 from neuro_helper.entity import Space, TemplateName
 from neuro_helper.statistics import percent_change, icc
-import pandas_flavor as pf
 
 
 @pf.register_dataframe_method
@@ -94,12 +93,15 @@ def add_topo(df, template_name: TemplateName, space: Space, *args):
     return new_df
 
 
+@pf.register_dataframe_method
 def add_median_lh(x, calc_med_col, values=("L", "H")):
     med = x[calc_med_col].median()
     return add_split_label(x, calc_med_col, calc_med_col, (values, med))
 
 
-def add_split_label(x, on, based, criteria):
+@pf.register_dataframe_method
+def add_split_label(df, on, based, criteria):
+    x = df.copy()
     if callable(criteria):
         labels, borders = criteria(x[based])
     else:
@@ -131,12 +133,14 @@ def add_split_label(x, on, based, criteria):
     return x
 
 
+@pf.register_dataframe_method
 def remove_outliers(x, of):
     stat = boxplot_stats(x[of])[0]
     low, high = stat["whislo"], stat["whishi"]
     return x.loc[(x[of] > low) & (x[of] < high)]
 
 
+@pf.register_dataframe_method
 def calc_paired_diff(x, diff_func=lambda left, right: abs(left - right), repeat=True):
     """
     calculates the 2-by-2 difference on one single column.
@@ -159,6 +163,7 @@ def calc_paired_diff(x, diff_func=lambda left, right: abs(left - right), repeat=
     return diff
 
 
+@pf.register_dataframe_method
 def calc_pchange(x):
     a = x[x.task == "Rest"]
     if not a.shape[0] == 1:
@@ -175,11 +180,13 @@ def calc_pchange(x):
     return df
 
 
+@pf.register_dataframe_method
 def calc_icc(x):
     return pd.Series(
         {"icc": icc(x.drop("region", 1).pivot(index='subject', columns='scan', values='metric').values)})
 
 
+@pf.register_series_method
 def normalize_series(x, new_min=0, new_max=1):
     old_min = x.min()
     old_max = x.max()
@@ -196,40 +203,3 @@ def concat_dfs(by, on, new_col="cat", **dfs):
         df = df.append(temp, ignore_index=True, sort=False)
 
     return df.reset_index(drop=True)
-
-
-def task_order(with_rest=True):
-    if with_rest:
-        out = ["Rest"]
-    else:
-        out = []
-    return out + ["StoryM", "Motort", "Wrkmem"]
-
-
-def get_net(net_lbl, template_name: TemplateName):
-    if template_name == TemplateName.COLE_360:
-        if net_lbl == "pce":
-            return {"P": ["Visual1", "Visual2", "Auditory", "Somatomotor"],
-                    "EC": ["DorsalAttention", "PosteriorMultimodal", "VentralMultimodal", "OrbitoAffective",
-                          "Language", "CinguloOpercular", "Frontoparietal", "Default"]}
-        elif net_lbl == "pcr":
-            return {"P": ["Visual1", "Visual2", "Auditory", "Somatomotor"],
-                    "RC": ["CinguloOpercular", "Frontoparietal", "Default"]}
-    elif template_name == TemplateName.SCHAEFER_200_7:
-        if net_lbl == "pc":
-            return {"P": ['Vis', 'SomMot', 'DorsAttn', 'SalVentAttn'],
-                    "C": ['Limbic', 'Cont', 'Default']}
-
-    raise ValueError(f"{template_name} and {net_lbl} is not defined")
-
-
-def net_order(template_name: TemplateName):
-    if template_name == TemplateName.COLE_360:
-        return ["Visual1", "Visual2", "Auditory", "Somatomotor", "DorsalAttention", "PosteriorMultimodal",
-                "VentralMultimodal","OrbitoAffective", "Language", "CinguloOpercular", "Frontoparietal", "Default"]
-    elif template_name == TemplateName.SCHAEFER_200_7:
-        return ['Vis', 'SomMot', 'DorsAttn', 'SalVentAttn', 'Limbic', 'Cont', 'Default']
-
-    raise Exception(f"{template_name} not defined")
-
-

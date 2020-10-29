@@ -2,9 +2,8 @@ import os
 import cifti
 import seaborn as sns
 
-from neuro_helper.entity import TemplateName, Space
-from neuro_helper.colormap import _cole_data, _schaefer7_data
-from neuro_helper.template import get_template
+from neuro_helper.entity import TemplateName
+from neuro_helper.colormap import cole_data, schaefer7_data
 
 directory = "figures"
 sns.set_style("whitegrid")
@@ -42,15 +41,16 @@ def savemap(name, data, brain_mask, *axes):
     if not os.path.exists(directory):
         os.makedirs(directory)
     file_path = f"{directory}/{name}.dtseries.nii"
+    # noinspection PyTypeChecker
     cifti.write(file_path, data, axes + (brain_mask,))
     return os.getcwd() + os.sep + file_path
 
 
 def make_net_palette(template_name: TemplateName):
     if template_name == TemplateName.COLE_360:
-        return _cole_data
+        return cole_data
     elif template_name == TemplateName.SCHAEFER_200_7:
-        return _schaefer7_data
+        return schaefer7_data
     else:
         raise ValueError(f"{template_name} has no network template.")
 
@@ -62,7 +62,7 @@ def make_lh_pallete(palette):
 def net_labels(tpt_name: TemplateName, two_line=True):
     if tpt_name == TemplateName.COLE_360:
         names = ['Visual1', 'Visual2', 'Auditory', 'Somatomotor', 'Dorsal\nAttention', 'Posterior\nMultimodal',
-                'Ventral\nMultimodal', 'Orbito\nAffective', 'Language', 'Cingulo\nOpercular', 'FPC', 'DMN']
+                 'Ventral\nMultimodal', 'Orbito\nAffective', 'Language', 'Cingulo\nOpercular', 'FPC', 'DMN']
     elif tpt_name == TemplateName.SCHAEFER_200_7:
         names = ['Visual', 'Somatomotor', 'Dorsal\nAttention', 'Salience', 'Limbic', 'FPC', 'DMN']
     else:

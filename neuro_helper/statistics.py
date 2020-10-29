@@ -1,6 +1,5 @@
 import numpy as np
-from scipy import signal
-from statsmodels.tsa import stattools
+from scipy import signal, stats
 
 
 def fir_filter_data(data, fs, order=None, min_cycles=4, max_freq_low=None, min_freq_high=None, pass_type="bp"):
@@ -37,6 +36,7 @@ def fir_filter_data(data, fs, order=None, min_cycles=4, max_freq_low=None, min_f
     else:
         raise Exception("pass_type not defined")
 
+    # noinspection PyTypeChecker
     return signal.filtfilt(signal.firwin(order, freq, window='hanning', pass_zero=pass_zero, fs=fs),
                            [1], data), freq_l, freq_h
 
@@ -79,23 +79,34 @@ def cohend(d1, d2):
     return (u1 - u2) / s
 
 
-def icc(Y, icc_type='icc2'):
+def correlate_rows(data):
+    n_items = data.shape[0]
+    corr = np.zeros((n_items, n_items))
+    for ri in range(n_items):
+        for rj in range(ri, n_items):
+            corr_val, _ = stats.pearsonr(data[ri, :], data[rj, :])
+            corr[ri, rj] = corr[rj, ri] = corr_val
+
+    return corr
+
+
+def icc(y, icc_type='icc2'):
     """ Calculate intraclass correlation coefficient for data within
         Brain_Data class
-    ICC Formulas are based on:
+    icc Formulas are based on:
     Shrout, P. E., & Fleiss, J. L. (1979). Intraclass correlations: uses in
     assessing rater reliability. Psychological bulletin, 86(2), 420.
     Code from https://github.com/cosanlab/nltools/blob/master/nltools/data/brain_data.py
     Args:
-        Y: subjects x sessions
+        y: subjects x sessions
         icc_type: type of icc to calculate (icc: voxel random effect,
                 icc2: voxel and column random effect, icc3: voxel and
                 column fixed effect)
     Returns:
-        ICC: (np.array) intraclass correlation coefficient
+        icc: (np.array) intraclass correlation coefficient
     """
     # n, k
-    [n_subjects, n_scans] = Y.shape
+    [n_subjects, n_scans] = y.shape
 
     # Degrees of Freedom
     dfc = n_scans - 1
@@ -103,8 +114,8 @@ def icc(Y, icc_type='icc2'):
     dfr = n_subjects - 1
 
     # Sum Square Total
-    mean_Y = np.mean(Y)
-    SST = ((Y - mean_Y) ** 2).sum()
+    mean_y = np.mean(y)
+    SST = ((y - mean_y) ** 2).sum()
 
     # create the design matrix for the different levels
     x = np.kron(np.eye(n_scans), np.ones((n_subjects, 1)))  # sessions
@@ -112,37 +123,37 @@ def icc(Y, icc_type='icc2'):
     X = np.hstack([x, x0])
 
     # Sum Square Error
-    predicted_Y = np.dot(np.dot(np.dot(X, np.linalg.pinv(np.dot(X.T, X))),
-                                X.T), Y.flatten('F'))
-    residuals = Y.flatten('F') - predicted_Y
-    SSE = (residuals ** 2).sum()
+    predicted_y = np.dot(np.dot(np.dot(X, np.linalg.pinv(np.dot(X.T, X))),
+                                X.T), y.flatten('F'))
+    residuals = y.flatten('F') - predicted_y
+    sse = (residuals ** 2).sum()
 
-    MSE = SSE / dfe
+    mse = sse / dfe
 
     # Sum square column effect - between colums
-    SSC = ((np.mean(Y, 0) - mean_Y) ** 2).sum() * n_subjects
-    MSC = SSC / dfc / n_subjects
+    ssc = ((np.mean(y, 0) - mean_y) ** 2).sum() * n_subjects
+    msc = ssc / dfc / n_subjects
 
     # Sum Square subject effect - between rows/subjects
-    SSR = SST - SSC - SSE
-    MSR = SSR / dfr
+    ssr = SST - ssc - sse
+    msr = ssr / dfr
 
     if icc_type == 'icc1':
-        # ICC(2,1) = (mean square subject - mean square error) /
+        # icc(2,1) = (mean square subject - mean square error) /
         # (mean square subject + (k-1)*mean square error +
         # k*(mean square columns - mean square error)/n)
-        # ICC = (MSR - MSRW) / (MSR + (k-1) * MSRW)
-        NotImplementedError("This method isn't implemented yet.")
-
+        # icc = (msr - MSRW) / (msr + (k-1) * MSRW)
+        raise NotImplementedError("This method isn't implemented yet.")
     elif icc_type == 'icc2':
-        # ICC(2,1) = (mean square subject - mean square error) /
+        # icc(2,1) = (mean square subject - mean square error) /
         # (mean square subject + (k-1)*mean square error +
         # k*(mean square columns - mean square error)/n)
-        ICC = (MSR - MSE) / (MSR + (n_scans - 1) * MSE + n_scans * (MSC - MSE) / n_subjects)
-
+        icc_value = (msr - mse) / (msr + (n_scans - 1) * mse + n_scans * (msc - mse) / n_subjects)
     elif icc_type == 'icc3':
-        # ICC(3,1) = (mean square subject - mean square error) /
+        # icc(3,1) = (mean square subject - mean square error) /
         # (mean square subject + (k-1)*mean square error)
-        ICC = (MSR - MSE) / (MSR + (n_scans - 1) * MSE)
+        icc_value = (msr - mse) / (msr + (n_scans - 1) * mse)
+    else:
+        raise ValueError(f"{icc_type} is not defined.")
 
-    return ICC
+    return icc_value
