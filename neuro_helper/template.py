@@ -2,45 +2,50 @@ import numpy as np
 import cifti
 from pandas import DataFrame, Series
 from neuro_helper.entity import TopoName, Space, TemplateName
+from neuro_helper.assets import manager
 
 _loaded_templates = {}
 
-files = {
+file_names = {
     TopoName.MEDIAL_WALL: {
-        Space.K32: "files/hcp/topo.medial_wall.32k.dlabel.nii",
-        Space.K59: "files/hcp/topo.medial_wall.59k.dlabel.nii"
+        Space.K32: "topo.medial_wall.32k.dlabel.nii",
+        Space.K59: "topo.medial_wall.59k.dlabel.nii"
     },
     TopoName.T1T2: {
-        Space.K32: "files/hcp/topo.t1t2.32k.dscalar.nii",
-        Space.K59: "files/hcp/topo.t1t2.59k.dscalar.nii"
+        Space.K32: "topo.t1t2.32k.dscalar.nii",
+        Space.K59: "topo.t1t2.59k.dscalar.nii"
     },
     TopoName.ANT_POST_GRADIENT: {
-        Space.K32: "files/hcp/topo.coord.32k.dscalar.nii",
-        Space.K59: "files/hcp/topo.coord.59k.dscalar.nii"
+        Space.K32: "topo.coord.32k.dscalar.nii",
+        Space.K59: "topo.coord.59k.dscalar.nii"
     },
     TopoName.MARGULIES_GRADIENT: {
         Space.K8: "",
-        Space.K32: "files/hcp/topo.margulies2016.32k.dscalar.nii",
-        Space.K59: "files/hcp/topo.margulies2016.59k.dscalar.nii"
+        Space.K32: "topo.margulies2016.32k.dscalar.nii",
+        Space.K59: "topo.margulies2016.59k.dscalar.nii"
     },
     TemplateName.SCHAEFER_200_7: {
-        Space.K32: "files/hcp/template.schaefer2018.2007.32k.dlabel.nii",
-        Space.K59: "files/hcp/template.schaefer2018.2007.59k.dlabel.nii"
+        Space.K32: "template.schaefer2018.2007.32k.dlabel.nii",
+        Space.K59: "template.schaefer2018.2007.59k.dlabel.nii"
     },
     TemplateName.SCHAEFER_200_17: {
-        Space.K32: "files/hcp/template.schaefer2018.20017.32k.dlabel.nii",
-        Space.K59: "files/hcp/template.schaefer2018.20017.59k.dlabel.nii"
+        Space.K32: "template.schaefer2018.20017.32k.dlabel.nii",
+        Space.K59: "template.schaefer2018.20017.59k.dlabel.nii"
     },
     TemplateName.COLE_360: {
-        Space.K4: "files/hcp/template.cole.36012.4k.dlabel.nii",
-        Space.K32: "files/hcp/template.cole.36012.32k.dlabel.nii",
-        Space.K59: "files/hcp/template.cole.36012.59k.dlabel.nii"
+        Space.K4: "template.cole.36012.4k.dlabel.nii",
+        Space.K32: "template.cole.36012.32k.dlabel.nii",
+        Space.K59: "template.cole.36012.59k.dlabel.nii"
     },
     TemplateName.WANG: {
-        Space.K32: "files/hcp/template.wang2015.32k.dlabel.nii",
-        Space.K59: "files/hcp/template.wang2015.59k.dlabel.nii"
+        Space.K32: "template.wang2015.32k.dlabel.nii",
+        Space.K59: "template.wang2015.59k.dlabel.nii"
     }
 }
+
+
+def get_full_path(file_name):
+    return manager.get_full_path(manager.AssetCategory.HCP1200, file_name)
 
 
 def _get_or_load(key, loaded):
@@ -67,12 +72,12 @@ def get_topo_dataframe(topo_name: TopoName, template_name: TemplateName, space: 
 
 def _get_medial_wall_topo(space: Space):
     return _get_or_load(f"{TopoName.MEDIAL_WALL}:{space}",
-                        lambda: cifti.read(files[TopoName.MEDIAL_WALL][space])[0].squeeze())
+                        lambda: cifti.read(manager)[0].squeeze())
 
 
 def _get_t1t2_topo(template_name: TemplateName, space: Space):
     def load():
-        voxels = cifti.read(files[TopoName.T1T2][space])[0].squeeze()
+        voxels = cifti.read(get_full_path(file_names[TopoName.T1T2][space]))[0].squeeze()
         mask, _, networks, regions, _ = get_template(template_name, space)
         mask_no_wall = mask[_get_medial_wall_topo(space) == 0]
         topo = DataFrame({"region": Series(dtype=str), "network": Series(dtype=str), "t1t2": Series(dtype=float)})
@@ -86,7 +91,7 @@ def _get_t1t2_topo(template_name: TemplateName, space: Space):
 def _get_gradient_topo(template_name: TemplateName, space: Space):
     def load():
         mask, _, networks, regions, _ = get_template(template_name, space)
-        voxels = cifti.read(files[TopoName.MARGULIES_GRADIENT][space])[0].squeeze()[:29696 + 29716]
+        voxels = cifti.read(get_full_path(file_names[TopoName.MARGULIES_GRADIENT][space]))[0].squeeze()[:29696 + 29716]
         mask_no_wall = mask[_get_medial_wall_topo(space) == 0]
         topo = DataFrame({"region": Series(dtype=str), "network": Series(dtype=str), "gradient": Series(dtype=float)})
         for i, (reg, net) in enumerate(zip(regions, networks)):
@@ -99,7 +104,7 @@ def _get_gradient_topo(template_name: TemplateName, space: Space):
 def _get_coordinates_topo(template_name: TemplateName, space: Space):
     def load():
         mask, _, networks, regions, _ = get_template(template_name, space)
-        voxels = cifti.read(files[TopoName.ANT_POST_GRADIENT][space])[0].T[:29696 + 29716, :]
+        voxels = cifti.read(get_full_path(file_names[TopoName.ANT_POST_GRADIENT][space]))[0].T[:29696 + 29716, :]
         mask_no_wall = mask[_get_medial_wall_topo(space) == 0]
         topo = DataFrame({"region": Series(dtype=str), "network": Series(dtype=str),
                           "coord_x": Series(dtype=float), "coord_y": Series(dtype=float),
@@ -143,7 +148,7 @@ def load_schaefer_template(space: Space, reg_count, net_count):
     name = f"{tpt_name}:{space}"
     if name not in _loaded_templates:
         mask, (lbl_axis, brain_axis) = \
-            cifti.read(files[tpt_name][space])
+            cifti.read(get_full_path(file_names[tpt_name][space]))
         mask = np.squeeze(mask)
         lbl_dict = lbl_axis.label.item()
         regions = np.asarray([lbl_dict[key][0] for key in list(lbl_dict.keys())])[1:]
@@ -156,7 +161,7 @@ def load_schaefer_template(space: Space, reg_count, net_count):
 def load_cole_template(space: Space):
     name = f"{TemplateName.COLE_360}:{space}"
     if name not in _loaded_templates:
-        mask, (lbl_axis, brain_axis) = cifti.read(files[TemplateName.COLE_360][space])
+        mask, (lbl_axis, brain_axis) = cifti.read(get_full_path(file_names[TemplateName.COLE_360][space]))
         mask = np.squeeze(mask)
         lbl_dict = lbl_axis.label.item()
         regions = np.asarray([lbl_dict[x][0] for x in np.unique(mask)])[1:]
@@ -169,7 +174,7 @@ def load_cole_template(space: Space):
 def load_wang_template(space: Space):
     name = f"{TemplateName.WANG}:{space}"
     if name not in _loaded_templates:
-        mask, (lbl_axis, brain_axis) = cifti.read(files[TemplateName.COLE_360][space])
+        mask, (lbl_axis, brain_axis) = cifti.read(get_full_path(file_names[TemplateName.COLE_360][space]))
         mask = np.squeeze(mask)
 
         lbl_dict = lbl_axis.label.item()

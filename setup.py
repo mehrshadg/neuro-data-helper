@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="neuro-helper",
-    version="0.0.4",
+    version="0.0.5",
     author="Mehrshad Golesorkhi",
     author_email="mehrshad.golesorkhi@gmail.com",
     description="A simple package dealing with some analysis in my PhD thesis",
@@ -18,5 +18,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
+    include_package_data=True,
 )
