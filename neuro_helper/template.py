@@ -20,7 +20,6 @@ file_names = {
         Space.K59: "topo.coord.59k.dscalar.nii"
     },
     TopoName.MARGULIES_GRADIENT: {
-        Space.K8: "",
         Space.K32: "topo.margulies2016.32k.dscalar.nii",
         Space.K59: "topo.margulies2016.59k.dscalar.nii"
     },
