@@ -4,6 +4,7 @@ import cifti
 from pandas import DataFrame
 from neuro_helper.template import get_template
 from neuro_helper.entity import TemplateName, Space
+import pandas_flavor as pf
 
 
 def out_of(name, dir_from_last_part=True):
@@ -82,6 +83,7 @@ def generate_long_data(find_files, prepare_file_content, template_name: Template
     return df
 
 
+@pf.register_dataframe_method
 def build_single_topo_map(df: DataFrame, template_name: TemplateName, space: Space):
     """
     :param df: must only contains two columns: regions and values
