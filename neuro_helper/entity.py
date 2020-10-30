@@ -2,12 +2,19 @@ from enum import Enum
 
 
 class Space(Enum):
-    K8 = "8k"
+    K4 = "4k"
+    K4_CORTEX = "4k_cortex"
     K32 = "32k"
-    K59 = "64k"
+    K32_CORTEX = "32k_cortex"
+    K59 = "59k"
+    K59_CORTEX = "59k_cortex"
 
     def __str__(self):
         return self.value
+
+    @property
+    def is_cortex(self):
+        return "_cortex" in self.value
 
 
 class TopoName(Enum):

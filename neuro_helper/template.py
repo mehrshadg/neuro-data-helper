@@ -13,28 +13,40 @@ file_names = {
     },
     TopoName.T1T2: {
         Space.K32: "topo.t1t2.32k.dscalar.nii",
-        Space.K59: "topo.t1t2.59k.dscalar.nii"
+        Space.K32_CORTEX: "topo.t1t2.32k_cortex.dscalar.nii",
+        Space.K59: "topo.t1t2.59k.dscalar.nii",
+        Space.K59_CORTEX: "topo.t1t2.59k_cortex.dscalar.nii",
     },
     TopoName.ANT_POST_GRADIENT: {
         Space.K32: "topo.coord.32k.dscalar.nii",
-        Space.K59: "topo.coord.59k.dscalar.nii"
+        Space.K32_CORTEX: "topo.coord.32k_cortex.dscalar.nii",
+        Space.K59: "topo.coord.59k.dscalar.nii",
+        Space.K59_CORTEX: "topo.coord.59k_cortex.dscalar.nii",
     },
     TopoName.MARGULIES_GRADIENT: {
         Space.K32: "topo.margulies2016.32k.dscalar.nii",
-        Space.K59: "topo.margulies2016.59k.dscalar.nii"
+        Space.K32_CORTEX: "topo.margulies2016.32k_cortex.dscalar.nii",
+        Space.K59: "topo.margulies2016.59k.dscalar.nii",
+        Space.K59_CORTEX: "topo.margulies2016.59k_cortex.dscalar.nii",
     },
     TemplateName.SCHAEFER_200_7: {
         Space.K32: "template.schaefer2018.2007.32k.dlabel.nii",
-        Space.K59: "template.schaefer2018.2007.59k.dlabel.nii"
+        Space.K32_CORTEX: "template.schaefer2018.2007.32k_cortex.dlabel.nii",
+        Space.K59: "template.schaefer2018.2007.59k.dlabel.nii",
+        Space.K59_CORTEX: "template.schaefer2018.2007.59k_cortex.dlabel.nii",
     },
     TemplateName.SCHAEFER_200_17: {
         Space.K32: "template.schaefer2018.20017.32k.dlabel.nii",
-        Space.K59: "template.schaefer2018.20017.59k.dlabel.nii"
+        Space.K32_CORTEX: "template.schaefer2018.20017.32k_cortex.dlabel.nii",
+        Space.K59: "template.schaefer2018.20017.59k.dlabel.nii",
+        Space.K59_CORTEX: "template.schaefer2018.20017.59k_cortex.dlabel.nii",
     },
     TemplateName.COLE_360: {
         Space.K4: "template.cole.36012.4k.dlabel.nii",
         Space.K32: "template.cole.36012.32k.dlabel.nii",
-        Space.K59: "template.cole.36012.59k.dlabel.nii"
+        Space.K32_CORTEX: "template.cole.36012.32k_cortex.dlabel.nii",
+        Space.K59: "template.cole.36012.59k.dlabel.nii",
+        Space.K59_CORTEX: "template.cole.36012.59k_cortex.dlabel.nii"
     },
     TemplateName.WANG: {
         Space.K32: "template.wang2015.32k.dlabel.nii",
@@ -90,7 +102,9 @@ def _get_t1t2_topo(template_name: TemplateName, space: Space):
 def _get_gradient_topo(template_name: TemplateName, space: Space):
     def load():
         mask, _, networks, regions, _ = get_template(template_name, space)
-        voxels = cifti.read(get_full_path(file_names[TopoName.MARGULIES_GRADIENT][space]))[0].squeeze()[:29696 + 29716]
+        voxels = cifti.read(get_full_path(file_names[TopoName.MARGULIES_GRADIENT][space]))[0].squeeze()
+        if space.is_cortex:
+            voxels = voxels[:29696 + 29716]
         mask_no_wall = mask[_get_medial_wall_topo(space) == 0]
         topo = DataFrame({"region": Series(dtype=str), "network": Series(dtype=str), "gradient": Series(dtype=float)})
         for i, (reg, net) in enumerate(zip(regions, networks)):
@@ -103,7 +117,9 @@ def _get_gradient_topo(template_name: TemplateName, space: Space):
 def _get_coordinates_topo(template_name: TemplateName, space: Space):
     def load():
         mask, _, networks, regions, _ = get_template(template_name, space)
-        voxels = cifti.read(get_full_path(file_names[TopoName.ANT_POST_GRADIENT][space]))[0].T[:29696 + 29716, :]
+        voxels = cifti.read(get_full_path(file_names[TopoName.ANT_POST_GRADIENT][space]))[0].T
+        if space.is_cortex:
+            voxels = voxels[:29696 + 29716, :]
         mask_no_wall = mask[_get_medial_wall_topo(space) == 0]
         topo = DataFrame({"region": Series(dtype=str), "network": Series(dtype=str),
                           "coord_x": Series(dtype=float), "coord_y": Series(dtype=float),
@@ -162,6 +178,11 @@ def load_cole_template(space: Space):
     if name not in _loaded_templates:
         mask, (lbl_axis, brain_axis) = cifti.read(get_full_path(file_names[TemplateName.COLE_360][space]))
         mask = np.squeeze(mask)
+
+        if space.is_cortex:
+            cortex_slices = map(lambda x: x[1], filter(lambda x: 'CORTEX' in x[0], brain_axis.iter_structures()))
+            cortex_slices = list()
+
         lbl_dict = lbl_axis.label.item()
         regions = np.asarray([lbl_dict[x][0] for x in np.unique(mask)])[1:]
         networks = ["".join(x.split("_")[0].split("-")[:-1]) for x in regions]
