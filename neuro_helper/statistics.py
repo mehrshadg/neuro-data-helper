@@ -2,7 +2,7 @@ import numpy as np
 from scipy import signal, stats
 
 
-def fir_filter_data(data, fs, order=None, min_cycles=4, max_freq_low=None, min_freq_high=None, pass_type="bp"):
+def fir_filter(data, fs, order=None, min_cycles=4, max_freq_low=None, min_freq_high=None, pass_type="bp"):
     n_channel, n_sample = data.shape
     total_time = n_sample / fs
 

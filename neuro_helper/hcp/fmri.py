@@ -4,45 +4,44 @@ import cifti
 import numpy as np
 
 from neuro_helper.entity import Space
+from neuro_helper.storage import LocalStorage, ANYTHING, StorageFile
 
 
-def get_all_raw_files(task_name, mode, id, space: Space):
-    if space == Space.K32:
-        pattern = f"/data/hcp/3T/#SUBJ#/MNINonLinear/Results/[tr]fMRI_{task_name}#SCAN#_[LR][LR]/*_Atlas_MSMAll_hp2000_clean.dtseries.nii"
-    elif space == Space.K59:
-        pattern = f"/data/hcp/7T/#SUBJ#/MNINonLinear/Results/[tr]fMRI_{task_name}#SCAN#_7T_*/*_7T_*_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii"
-    else:
-        raise ValueError(f"{space} doesn't have fMRI HCP raw files")
+class FMRILocalStorage59K(LocalStorage):
+    def __init__(self, root: str, task_name: str, scan_id: str, space: Space):
+        if space == Space.K32:
+            parts = ["3T/", ANYTHING, "/MNINonLinear/Results/[tr]fMRI_", "task_name", "scan_id", "_[LR][LR]/", ANYTHING,
+                                "_Atlas_MSMAll_hp2000_clean.dtseries.nii"]
+        elif space == Space.K59:
+            parts = ["7T/", ANYTHING, "/MNINonLinear/Results/[tr]fMRI_", "task_name", "scan_id", "_7T_", ANYTHING,
+             "/", ANYTHING, "_7T_", ANYTHING, "_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii"]
+        else:
+            raise ValueError(f"{space} doesn't have fMRI HCP raw files")
 
-    if mode == "by_subj":
-        pattern = pattern.replace("#SUBJ#", id).replace("#SCAN#", "*")
-    elif mode == "by_scan":
-        pattern = pattern.replace("#SUBJ#", "*").replace("#SCAN#", id)
-    else:
-        raise Exception("%s mode is not defined" % mode)
+        super().__init__(root, parts, **{"scan_id": scan_id, "task_name": task_name})
+        self.task_name = task_name
 
-    files = glob.glob(pattern)
-    files.sort()
+    def get_all_by_scan(self):
+        files = self.get_all()
 
-    dictionary = {}
-    for file in files:
-        path_parts = file.split(os.sep)
-        subj_id = path_parts[-5]
-        scan_id = path_parts[-2].split("_")[1].replace(task_name, "")
+        dictionary = {}
+        for file in files:
+            path_parts = file.loadable_path.split(os.sep)
+            subj_id = path_parts[-5]
+            scan_id = path_parts[-2].split("_")[1].replace(self.task_name, "")
 
-        key = scan_id if mode == "by_scan" else "SUBJ"
-        if key not in dictionary:
-            dictionary[key] = {}
-        if subj_id not in dictionary[key]:
-            dictionary[key][subj_id] = []
+            if scan_id not in dictionary:
+                dictionary[scan_id] = {}
+            if subj_id not in dictionary[scan_id]:
+                dictionary[scan_id][subj_id] = []
 
-        dictionary[key][subj_id].append((scan_id, file))
+            dictionary[scan_id][subj_id].append((scan_id, file))
 
-    return dictionary
+        return dictionary
 
 
-def load_raw_file(file: str, space: Space):
-    data = cifti.read(file)[0].T
+def load_raw_file(file: StorageFile, space: Space):
+    data = cifti.read(file.loadable_path)[0].T
     if space == Space.K59:
         fs = 1.0
     elif space == Space.K32:
@@ -90,7 +89,7 @@ def concat_scans(files, space: Space, **kwargs):
             raise Exception("Large cut sample in merging %s" % file)
         output.append(data[:, :data_cut_sample])
 
-    return np.column_stack(output), shared_fs, "CONCAT " + ", ".join(files)
+    return np.column_stack(output), shared_fs, "CONCAT " + ", ".join(map(lambda x: x.loadable_path, files))
 
 
 def average_scans(files, space: Space, **kwargs):
@@ -104,13 +103,13 @@ def average_scans(files, space: Space, **kwargs):
             shared_fs = fs
         elif not fs == shared_fs:
             print(f"Shared Fs: {shared_fs} and Fs: {fs}")
-            raise Exception(f"Incompatible FS, cannot merge scans in {', '.join(files)}")
+            raise Exception(f"Incompatible FS, cannot merge scans in {', '.join(map(lambda x: x.loadable_path, files))}")
 
         min_length = min(min_length, data.shape[1])
         output.append(data)
 
     output = np.asarray([x[:, :min_length] for x in output])
-    return output.mean(axis=0), shared_fs, "AVERAGE " + ", ".join(files)
+    return output.mean(axis=0), shared_fs, "AVERAGE " + ", ".join(map(lambda x: x.loadable_path, files))
 
 
 

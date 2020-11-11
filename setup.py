@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="neuro-helper",
-    version="0.0.7",
+    version="0.0.8",
     author="Mehrshad Golesorkhi",
     author_email="mehrshad.golesorkhi@gmail.com",
     description="A simple package dealing with some analysis in my PhD thesis",

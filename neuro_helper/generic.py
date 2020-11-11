@@ -105,3 +105,5 @@ def build_single_topo_map(df: DataFrame, template_name: TemplateName, space: Spa
 def combine_topo_map(topo_maps):
     topos, brains = list(zip(*topo_maps))
     return np.concatenate(topos, axis=0), brains[0], cifti.Series(0, 1, len(topo_maps))
+
+
