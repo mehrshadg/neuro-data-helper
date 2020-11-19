@@ -150,7 +150,11 @@ def parcellate(tpt_name: TemplateName, space: Space, voxels):
 
 
 def get_template(name: TemplateName, space: Space):
-    return _loaded_templates.get(f"{name}:{space}")
+    key = f"{name}:{space}"
+    if key in _loaded_templates:
+        return _loaded_templates[key]
+    else:
+        raise KeyError(f"Template {key} is not loaded into memory. Use appropriate load method.")
 
 
 def load_schaefer_template(space: Space, reg_count, net_count):

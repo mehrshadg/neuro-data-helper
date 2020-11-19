@@ -4,7 +4,6 @@ from scipy import signal
 from statsmodels.tsa import stattools
 from neuro_helper.statistics import fir_filter
 from scipy.signal import hilbert
-import itertools
 
 
 def _calc_parallel(func, data, n_job, threading, **kwargs):
@@ -71,6 +70,16 @@ def calc_a_acmi(ts, which, n_lag=None, fast=True, is_acf=False):
 
 def calc_acmi(data, which, n_lag=None, fast=True, is_acf=False, n_job=None, threading=False):
     return _calc_parallel(calc_a_acmi, data, n_job, threading, which=which, n_lag=n_lag, fast=fast, is_acf=is_acf)
+
+
+def calc_a_acf_peaks(ts, cut_lag, is_acf=False):
+    acf = ts if is_acf else calc_a_acf(ts)
+    idx = np.concatenate((signal.argrelextrema(acf, np.less)[0], signal.argrelextrema(acf, np.greater)[0]))
+    return np.sort(idx[idx < cut_lag])
+
+
+def calc_acf_peaks(data, cut_lag, is_acf=False, n_job=None, threading=False):
+    return _calc_parallel(calc_a_acf_peaks, data, n_job, threading, cut_lag=cut_lag, is_acf=is_acf)
 
 
 def calc_lzc_norm_factor(ts):

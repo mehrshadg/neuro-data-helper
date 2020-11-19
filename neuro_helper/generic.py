@@ -56,14 +56,21 @@ def find_shared_subjects(find_files, prepare_file_content,
         return shared_ids
 
 
-def generate_long_data(find_files, prepare_file_content, template_name: TemplateName, space: Space):
+def generate_long_data(find_files, prepare_file_content, template_name: TemplateName, space: Space, tasks, show_warning=True):
     mask, unique_networks, networks, regions, _ = get_template(template_name, space)
     long_data = None
-    for task in ["Rest", "StoryM", "Motort", "Wrkmem"]:
+    for task in tasks:
         files = find_files(task=task, template_name=template_name, space=space)
         for file in files:
             scan_id, subj_ids, metric = prepare_file_content(np.load(file, allow_pickle=True))
             n_subj, n_regions = metric.shape
+            if len(regions) < n_regions:
+                if show_warning:
+                    print(f"Data {file}")
+                    print(f"number of regions in the template ({len(regions)}) "
+                          f"is not the same as the number of regions in the data ({n_regions}). Trimming.")
+                n_regions = len(regions)
+                metric = metric[:, :n_regions]
             task_scan = "%s-%s" % (task, scan_id)
             cols = np.c_[
                 np.repeat(task, n_subj * n_regions),
@@ -105,5 +112,3 @@ def build_single_topo_map(df: DataFrame, template_name: TemplateName, space: Spa
 def combine_topo_map(topo_maps):
     topos, brains = list(zip(*topo_maps))
     return np.concatenate(topos, axis=0), brains[0], cifti.Series(0, 1, len(topo_maps))
-
-

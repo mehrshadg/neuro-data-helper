@@ -7,7 +7,10 @@ from neuro_helper.entity import Space
 from neuro_helper.storage import LocalStorage, ANYTHING, StorageFile
 
 
-class FMRILocalStorage59K(LocalStorage):
+__all__ = ["FMRILocalStorage", "load_raw_file", "load_raw_files", "concat_scans", "average_scans"]
+
+
+class FMRILocalStorage(LocalStorage):
     def __init__(self, root: str, task_name: str, scan_id: str, space: Space):
         if space == Space.K32:
             parts = ["3T/", ANYTHING, "/MNINonLinear/Results/[tr]fMRI_", "task_name", "scan_id", "_[LR][LR]/", ANYTHING,
@@ -110,6 +113,5 @@ def average_scans(files, space: Space, **kwargs):
 
     output = np.asarray([x[:, :min_length] for x in output])
     return output.mean(axis=0), shared_fs, "AVERAGE " + ", ".join(map(lambda x: x.loadable_path, files))
-
 
 

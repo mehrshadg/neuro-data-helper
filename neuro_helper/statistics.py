@@ -41,16 +41,21 @@ def fir_filter(data, fs, order=None, min_cycles=4, max_freq_low=None, min_freq_h
                            [1], data), freq_l, freq_h
 
 
-def welch_psd(data, freq_l, fs):
+def welch_psd(data, freq_l, fs, preserve_memory=False, verbose=False):
     n_sample = data.shape[1]
-    n_fft = 2 ** np.ceil(np.log2(n_sample))
+    n_fft = 2 ** np.ceil(np.log2(n_sample)) if not preserve_memory else n_sample
     win_size = int(2 * 1.6 / freq_l * fs)
+    overlap = int(0.9 * win_size)
 
     if win_size > n_sample:
-        return None, None
+        raise ValueError(f"Window size ({win_size}) is larger than the total numbeer of samples ({n_sample})")
+
+    if verbose:
+        print(f"Welch PSD with following parameters: nfft: {n_fft}, no detrend\n"
+              f"Window: hanning, size {win_size}, overlap {overlap}")
 
     return signal.welch(data, fs=fs, nfft=n_fft, detrend=None,
-                        window="hanning", nperseg=win_size, noverlap=int(0.9 * win_size))
+                        window="hanning", nperseg=win_size, noverlap=overlap)
 
 
 def percent_change(base_cond, new_cond):

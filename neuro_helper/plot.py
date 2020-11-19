@@ -1,31 +1,33 @@
 import os
 import cifti
-import seaborn as sns
 
-from neuro_helper.entity import TemplateName
 from neuro_helper.colormap import cole_data, schaefer7_data
+from neuro_helper.entity import TemplateName
 
 directory = "figures"
-sns.set_style("whitegrid")
-PC_colors = ["#637687", "#A20325"]
-# PC_colors_tuple = [(99 / 256, 118 / 256, 135 / 256, 1), (162 / 255, 3 / 255, 37 / 255, 1)]
-PC_colors_tuple = [(0 / 256, 79 / 256, 255 / 256, 1), (162 / 255, 3 / 255, 37 / 255, 1)]
-PC_labels = ["Periphery", "Core"]
-task_colors = ["#f032e6", "#aaffc3", "#637687"]
-task_rest_colors = ["#B89B49"] + task_colors
-PMC_labels = ["Periphery", "Intermediate", "Core"]
-PMC_colors = ["#5975a4", "#cc8963", "#5f9e6e"]
-PMC_colors_tuple = [(34 / 256, 45 / 256, 64 / 256, 1), (80 / 256, 54 / 256, 29 / 256, 1),
-                    (38 / 256, 62 / 256, 44 / 256, 1)]
-font_scale = 1.1
-sns.set(font_scale=font_scale, style="whitegrid")
-template_meta_combination = [
-    (TemplateName.SCHAEFER_200_7, "pc"),
-    (TemplateName.COLE_360, "pce"),
-    (TemplateName.COLE_360, "pcr")
-]
 
-net_meta_C = {"pc": "C", "pce": "EC", "pcr": "RC"}
+
+def paired_colors(ret_tuple=False):
+    if ret_tuple:
+        return (0 / 256, 79 / 256, 255 / 256, 1), (162 / 255, 3 / 255, 37 / 255, 1)
+    else:
+        return "#637687", "#A20325"
+
+
+def triple_colors(ret_tuple=False):
+    if ret_tuple:
+        return (34 / 256, 45 / 256, 64 / 256, 1), (80 / 256, 54 / 256, 29 / 256, 1), (38 / 256, 62 / 256, 44 / 256, 1)
+    else:
+        return "#5975a4", "#cc8963", "#5f9e6e"
+
+
+def paired_labels(mode: str):
+    if mode == "cp":
+        return "Periphery", "Core"
+    elif mode == "ut":
+        return "Unimodal", "Transmodal"
+    else:
+        raise ValueError(f"No paired labels are defined for {mode}")
 
 
 def savefig(fig, name, bbox_inches="tight", extra_artists=(), low=False, transparent=False):
@@ -53,10 +55,6 @@ def make_net_palette(template_name: TemplateName):
         return schaefer7_data
     else:
         raise ValueError(f"{template_name} has no network template.")
-
-
-def make_lh_pallete(palette):
-    return [palette[0], ] * 7 + [palette[-1], ] * 5
 
 
 def net_labels(tpt_name: TemplateName, two_line=True):

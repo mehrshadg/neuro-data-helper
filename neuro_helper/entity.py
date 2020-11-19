@@ -16,6 +16,10 @@ class Space(Enum):
     def is_cortex(self):
         return "_cortex" in self.value
 
+    @property
+    def dropped_cortex(self):
+        return Space(self.value.replace("_cortex", ""))
+
 
 class TopoName(Enum):
     T1T2 = "t1t2"
