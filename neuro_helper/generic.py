@@ -2,9 +2,12 @@ import os
 import numpy as np
 import cifti
 from pandas import DataFrame
-from neuro_helper.template import get_template
-from neuro_helper.abstract.entity import TemplateName, Space
+from neuro_helper.abstract.map import TemplateMap
 import pandas_flavor as pf
+
+
+__all__ = ["value_or_raise", "break_space", "out_of", "find_shared_subjects",
+           "generate_long_data", "build_single_topo_map", "combine_topo_map"]
 
 
 def value_or_raise(data: dict, key: str, msg: str):
@@ -43,13 +46,11 @@ def out_of(name, dir_from_last_part=True):
     return file
 
 
-def find_shared_subjects(find_files, prepare_file_content,
-                         template_name: TemplateName, space: Space,
-                         tasks, return_indices):
+def find_shared_subjects(find_files, prepare_file_content, template: TemplateMap, tasks, return_indices):
     all_ids = []
     subject_id_dict = {}
     for task in tasks:
-        files = find_files(task=task, template_name=template_name, space=space)
+        files = find_files(task=task, template=template)
         for file in files:
             scan_id, subj_ids = prepare_file_content(np.load(file, allow_pickle=True))
             all_ids += subj_ids
@@ -67,20 +68,20 @@ def find_shared_subjects(find_files, prepare_file_content,
         return shared_ids
 
 
-def generate_long_data(find_files, prepare_file_content, template_name: TemplateName, space: Space, tasks, show_warning=True):
-    mask, unique_networks, networks, regions, _ = get_template(template_name, space)
+def generate_long_data(find_files, prepare_file_content, template: TemplateMap, tasks, show_warning=True):
+    t = template().data
     long_data = None
     for task in tasks:
-        files = find_files(task=task, template_name=template_name, space=space)
+        files = find_files(task=task, template=template)
         for file in files:
             scan_id, subj_ids, metric = prepare_file_content(np.load(file, allow_pickle=True))
             n_subj, n_regions = metric.shape
-            if len(regions) < n_regions:
+            if len(t.regions) < n_regions:
                 if show_warning:
                     print(f"Data {file}")
-                    print(f"number of regions in the template ({len(regions)}) "
+                    print(f"number of regions in the template ({len(t.regions)}) "
                           f"is not the same as the number of regions in the data ({n_regions}). Trimming.")
-                n_regions = len(regions)
+                n_regions = len(t.regions)
                 metric = metric[:, :n_regions]
             task_scan = "%s-%s" % (task, scan_id)
             cols = np.c_[
@@ -88,8 +89,8 @@ def generate_long_data(find_files, prepare_file_content, template_name: Template
                 np.repeat(scan_id, n_subj * n_regions),
                 np.repeat(task_scan, n_subj * n_regions),
                 np.repeat(subj_ids, n_regions),
-                np.tile(networks, n_subj),
-                np.tile(regions, n_subj),
+                np.tile(t.networks, n_subj),
+                np.tile(t.regions, n_subj),
                 metric.flatten()
             ]
             if long_data is None:
@@ -102,22 +103,21 @@ def generate_long_data(find_files, prepare_file_content, template_name: Template
 
 
 @pf.register_dataframe_method
-def build_single_topo_map(df: DataFrame, template_name: TemplateName, space: Space):
+def build_single_topo_map(df: DataFrame, template: TemplateMap):
     """
     :param df: must only contains two columns: regions and values
-    :param template_name:
-    :param space:
+    :param template:
     :return:
     """
-    mask, _, networks, regions, brain_axis = get_template(template_name, space)
-    topo = np.zeros((1, mask.size))
+    t = template().data
+    topo = np.zeros((1, t.mask.size))
     values = df.values
     for reg, pc in values:
-        reg_index = np.argmax(regions == reg) + 1
+        reg_index = np.argmax(t.regions == reg) + 1
         if reg_index == 0:
             print("0 reg_index in %s" % reg)
-        topo[0, np.argwhere(mask == reg_index)] = pc
-    return topo, brain_axis
+        topo[0, np.argwhere(t.mask == reg_index)] = pc
+    return topo, t.brain_axis
 
 
 def combine_topo_map(topo_maps):

@@ -150,6 +150,7 @@ class AbstractMap(ABC):
     def __call__(self, *args, **kwargs):
         if not self.loaded:
             self.load()
+        return self
 
 
 class TemplateMap(AbstractMap, ABC):
