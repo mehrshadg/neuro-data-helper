@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 from matplotlib.cbook import boxplot_stats
 import pandas_flavor as pf
-from neuro_helper.entity import Space, TemplateName
 from neuro_helper.statistics import percent_change, icc
 
 
@@ -78,17 +77,16 @@ def normalize(x, columns, new_min=0, new_max=1):
 
 
 @pf.register_dataframe_method
-def add_topo(df, template_name: TemplateName, space: Space, *args):
-    from neuro_helper.template import get_topo_dataframe
+def add_topo(df, *args):
     new_df = df
     has_net = "network" in df.columns
-    for arg in args:
-        topo = get_topo_dataframe(arg, template_name, space)
+    for topo in args:
+        topo()
+        topo_data = topo.data
         if has_net:
-            new_df = pd.merge(new_df, topo, on=["region", "network"])
+            new_df = pd.merge(new_df, topo_data, on=["region", "network"])
         else:
-            topo = topo.drop("network", 1)
-            new_df = pd.merge(new_df, topo, on=["region"])
+            new_df = pd.merge(new_df, topo_data.drop("network", 1), on=["region"])
 
     return new_df
 
@@ -164,18 +162,18 @@ def calc_paired_diff(x, diff_func=lambda left, right: abs(left - right), repeat=
 
 
 @pf.register_dataframe_method
-def calc_pchange(x):
-    a = x[x.task == "Rest"]
+def calc_percentage_change(x, column="task", from_="Rest", on="metric"):
+    a = x[x[column] == from_]
     if not a.shape[0] == 1:
-        raise Exception("Rest does not exist for %s" % x)
-    rest_val = a.metric.item()
-    output = []
-    for task in x.task:
-        if task == "Rest":
-            continue
-        output.append([task, percent_change(rest_val, x[x.task == task].metric.item())])
+        raise ValueError(f"{from_} does not exist in {column}")
 
-    df = pd.DataFrame(output, columns=["task", "pchange"])
+    from_val = a[on].item()
+    output = []
+    for t in x[column].unique():
+        if t == from_:
+            continue
+        output.append([t, percent_change(from_val, x[x[column] == t].metric.item())])
+    df = pd.DataFrame(output, columns=[column, "pchange"])
     df.pchange = df.pchange.astype(float)
     return df
 

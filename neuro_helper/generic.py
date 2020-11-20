@@ -3,8 +3,19 @@ import numpy as np
 import cifti
 from pandas import DataFrame
 from neuro_helper.template import get_template
-from neuro_helper.entity import TemplateName, Space
+from neuro_helper.abstract.entity import TemplateName, Space
 import pandas_flavor as pf
+
+
+def value_or_raise(data: dict, key: str, msg: str):
+    value = data.get(key)
+    if value is None:
+        raise KeyError(msg)
+    return value
+
+
+def break_space(values):
+    return [x.replace("\n", " ") for x in values]
 
 
 def out_of(name, dir_from_last_part=True):

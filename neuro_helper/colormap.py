@@ -1109,42 +1109,13 @@ parula_data = [[0.2081, 0.1663, 0.5292],
                [0.9661, 0.9514428571, 0.0755333333],
                [0.9763, 0.9831, 0.0538]]
 
-# ['Visual', 'Somatomotor', 'Dorsal\nAttention', 'Salience', 'Limbic', 'FPC', 'DMN']
-schaefer7_data = [
-    [97 / 255, 46 / 255, 103 / 255],
-    [119 / 255, 153 / 255, 191 / 255],
-    [63 / 255, 152 / 255, 68 / 255],
-    [210 / 255, 95 / 255, 199 / 255],
-    [213 / 255, 227 / 255, 184 / 255],
-    [238 / 255, 184 / 255, 57 / 255],
-    [217 / 255, 112 / 255, 126 / 255],
-]
-
-# ['Visual1', 'Visual2', 'Auditory', 'Somatomotor', 'Dorsal\nAttention',
-# 'Posterior\nMultimodal', 'Ventral\nMultimodal', 'Orbito\nAffective', 'Language', 'Cingulo\nOpercular', 'FPC', 'DMN']
-cole_data = [
-    [97 / 255, 46 / 255, 103 / 255],
-    [114 / 255, 71 / 255, 83 / 255],
-    [100 / 255, 125 / 255, 148 / 255],
-    [119 / 255, 153 / 255, 191 / 255],
-    [63 / 255, 152 / 255, 68 / 255],
-    [90 / 255, 130 / 255, 85 / 255],
-    [31 / 255, 87 / 255, 39 / 255],
-    [228 / 255, 177 / 255, 209 / 255],
-    [210 / 255, 95 / 255, 199 / 255],
-    [213 / 255, 227 / 255, 184 / 255],
-    [238 / 255, 184 / 255, 57 / 255],
-    [217 / 255, 112 / 255, 126 / 255],
-]
 
 cmaps = {}
 for (name, data) in (('magma', magma_data),
                      ('inferno', inferno_data),
                      ('plasma', plasma_data),
                      ('viridis', viridis_data),
-                     ('parula', parula_data),
-                     ('schaefer7', schaefer7_data),
-                     ('cole', cole_data)):
+                     ('parula', parula_data)):
     cmaps[name] = ListedColormap(data, name=name)
 
 magma = cmaps['magma']
@@ -1152,5 +1123,3 @@ inferno = cmaps['inferno']
 plasma = cmaps['plasma']
 viridis = cmaps['viridis']
 parula = cmaps['parula']
-schaefer7 = cmaps['schaefer7']
-cole = cmaps['cole']

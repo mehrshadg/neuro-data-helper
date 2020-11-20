@@ -1,11 +1,11 @@
 import re
 from scipy.io import loadmat
 import numpy as np
-from neuro_helper.entity import TemplateName
+from neuro_helper.abstract.map import TemplateName
 from neuro_helper.storage import LocalStorage, StorageFile, ANYTHING, RCloneStorage
 
 
-__all__ = ["MEGLocalStorage", "MEGRCloneStorage", "load_raw_file", "task_order"]
+__all__ = ["MEGLocalStorage", "MEGRCloneStorage", "load_raw_file"]
 
 
 class MEGLocalStorage(LocalStorage):
@@ -80,4 +80,3 @@ def load_raw_file(file: StorageFile):
     data = np.concatenate(raw_data["trial"].item()[0], axis=1)
 
     return data, fs
-

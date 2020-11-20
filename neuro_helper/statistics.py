@@ -2,6 +2,9 @@ import numpy as np
 from scipy import signal, stats
 
 
+__all__ = ["fir_filter", "welch_psd", "percent_change", "anova_table", "cohend", "icc"]
+
+
 def fir_filter(data, fs, order=None, min_cycles=4, max_freq_low=None, min_freq_high=None, pass_type="bp"):
     n_channel, n_sample = data.shape
     total_time = n_sample / fs
@@ -95,6 +98,7 @@ def correlate_rows(data):
     return corr
 
 
+# noinspection PyPep8Naming
 def icc(y, icc_type='icc2'):
     """ Calculate intraclass correlation coefficient for data within
         Brain_Data class

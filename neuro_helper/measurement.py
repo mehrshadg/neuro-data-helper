@@ -145,8 +145,8 @@ def calc_peak(data, fs, low, high, apply_median_filter, n_job=None):
     n_window = 10
     win_lengths = np.round(np.linspace(10, 400, n_window) * fs / (2 * 1000)).astype(int)
 
-    def win_calc(wl, si):
-        start, stop = max(si - wl, 0), min(si + wl, n_sample)
+    def win_calc(wl_, si_):
+        start, stop = max(si_ - wl_, 0), min(si_ + wl_, n_sample)
         return np.median(np.sort(instant_freq[:, start: stop], axis=1), axis=1)
 
     n_job = n_job if n_job else 10

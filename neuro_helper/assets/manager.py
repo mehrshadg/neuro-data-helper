@@ -2,6 +2,9 @@ import os
 from enum import Enum
 
 
+__all__ = ["AssetCategory", "get_full_path"]
+
+
 class AssetCategory(Enum):
     HCP1200 = "hcp1200"
 

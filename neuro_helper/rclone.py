@@ -22,7 +22,6 @@ A Python wrapper for rclone.
 
 import logging
 import subprocess
-import tempfile
 
 
 __all__ = ["RClone"]
@@ -53,9 +52,6 @@ class RClone:
                     stderr=subprocess.PIPE) as proc:
                 (out, err) = proc.communicate()
 
-                #out = proc.stdout.read()
-                #err = proc.stderr.read()
-
                 self.log.debug(out)
                 if err:
                     self.log.warning(err.decode("utf-8").replace("\\n", "\n"))
@@ -78,7 +74,7 @@ class RClone:
                 "error": generic_e
             }
 
-    def run_cmd(self, command, extra_args=[]):
+    def run_cmd(self, command, extra_args=None):
         """
         Execute rclone command
 
@@ -86,12 +82,14 @@ class RClone:
             - command (string): the rclone command to execute.
             - extra_args (list): extra arguments to be passed to the rclone command
         """
+        if extra_args is None:
+            extra_args = []
         command_with_args = ["rclone", command]
         command_with_args += extra_args
         command_result = self._execute(command_with_args)
         return command_result
 
-    def copy(self, source, dest, flags=[]):
+    def copy(self, source, dest, flags=None):
         """
         Executes: rclone copy source:path dest:path [flags]
 
@@ -100,9 +98,11 @@ class RClone:
         - dest (string): A string "dest:path"
         - flags (list): Extra flags as per `rclone copy --help` flags.
         """
+        if flags is None:
+            flags = []
         return self.run_cmd(command="copy", extra_args=[source] + [dest] + flags)
 
-    def sync(self, source, dest, flags=[]):
+    def sync(self, source, dest, flags=None):
         """
         Executes: rclone sync source:path dest:path [flags]
 
@@ -111,31 +111,39 @@ class RClone:
         - dest (string): A string "dest:path"
         - flags (list): Extra flags as per `rclone sync --help` flags.
         """
+        if flags is None:
+            flags = []
         return self.run_cmd(command="sync", extra_args=[source] + [dest] + flags)
 
-    def ls(self, dest, flags=[]):
+    def ls(self, dest, flags=None):
         """
         Executes: rclone ls remote:path [flags]
 
         Args:
         - dest (string): A string "remote:path" representing the location to list.
         """
+        if flags is None:
+            flags = []
         return self.run_cmd(command="ls", extra_args=[dest] + flags)
 
-    def lsf(self, dest, flags=[]):
+    def lsf(self, dest, flags=None):
         """
         Executes: rclone ls remote:path [flags]
 
         Args:
         - dest (string): A string "remote:path" representing the location to list.
         """
+        if flags is None:
+            flags = []
         return self.run_cmd(command="lsf", extra_args=[dest] + flags)
 
-    def delete(self, dest, flags=[]):
+    def delete(self, dest, flags=None):
         """
         Executes: rclone delete remote:path
 
         Args:
         - dest (string): A string "remote:path" representing the location to delete.
         """
+        if flags is None:
+            flags = []
         return self.run_cmd(command="delete", extra_args=[dest] + flags)

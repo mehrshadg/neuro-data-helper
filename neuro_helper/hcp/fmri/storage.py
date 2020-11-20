@@ -1,11 +1,9 @@
-import glob
 import os
 import cifti
 import numpy as np
 
-from neuro_helper.entity import Space
+from neuro_helper.abstract.map import Space
 from neuro_helper.storage import LocalStorage, ANYTHING, StorageFile
-
 
 __all__ = ["FMRILocalStorage", "load_raw_file", "load_raw_files", "concat_scans", "average_scans"]
 
@@ -14,10 +12,10 @@ class FMRILocalStorage(LocalStorage):
     def __init__(self, root: str, task_name: str, scan_id: str, space: Space):
         if space == Space.K32:
             parts = ["3T/", ANYTHING, "/MNINonLinear/Results/[tr]fMRI_", "task_name", "scan_id", "_[LR][LR]/", ANYTHING,
-                                "_Atlas_MSMAll_hp2000_clean.dtseries.nii"]
+                     "_Atlas_MSMAll_hp2000_clean.dtseries.nii"]
         elif space == Space.K59:
             parts = ["7T/", ANYTHING, "/MNINonLinear/Results/[tr]fMRI_", "task_name", "scan_id", "_7T_", ANYTHING,
-             "/", ANYTHING, "_7T_", ANYTHING, "_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii"]
+                     "/", ANYTHING, "_7T_", ANYTHING, "_Atlas_1.6mm_MSMAll_hp2000_clean.dtseries.nii"]
         else:
             raise ValueError(f"{space} doesn't have fMRI HCP raw files")
 
@@ -54,15 +52,15 @@ def load_raw_file(file: StorageFile, space: Space):
     return data, fs
 
 
-def load_raw_files(input, space: Space, merge_func, **kwargs):
-    if type(input) == str:
-        data, fs = load_raw_file(input, space)
-        return data, fs, input
-    elif type(input) == list and len(input) == 1:
-        data, fs = load_raw_file(input[0][1], space)
-        return data, fs, input[0][1]
-    elif type(input) == list:
-        _, files = list(zip(*input))
+def load_raw_files(input_, space: Space, merge_func, **kwargs):
+    if type(input_) == str:
+        data, fs = load_raw_file(input_, space)
+        return data, fs, input_
+    elif type(input_) == list and len(input_) == 1:
+        data, fs = load_raw_file(input_[0][1], space)
+        return data, fs, input_[0][1]
+    elif type(input_) == list:
+        _, files = list(zip(*input_))
         return merge_func(files, space, **kwargs)
     else:
         raise ValueError("input type is not valid")
@@ -95,6 +93,7 @@ def concat_scans(files, space: Space, **kwargs):
     return np.column_stack(output), shared_fs, "CONCAT " + ", ".join(map(lambda x: x.loadable_path, files))
 
 
+# noinspection PyUnusedLocal
 def average_scans(files, space: Space, **kwargs):
     output = []
     shared_fs = None
@@ -106,12 +105,10 @@ def average_scans(files, space: Space, **kwargs):
             shared_fs = fs
         elif not fs == shared_fs:
             print(f"Shared Fs: {shared_fs} and Fs: {fs}")
-            raise Exception(f"Incompatible FS, cannot merge scans in {', '.join(map(lambda x: x.loadable_path, files))}")
+            raise Exception(f"Incompatible FS cannot merge scans in {', '.join(map(lambda x: x.loadable_path, files))}")
 
         min_length = min(min_length, data.shape[1])
         output.append(data)
 
     output = np.asarray([x[:, :min_length] for x in output])
     return output.mean(axis=0), shared_fs, "AVERAGE " + ", ".join(map(lambda x: x.loadable_path, files))
-
-
