@@ -114,12 +114,10 @@ class SchaeferTemplateMap(TemplateMap):
 
     def net_labels(self, break_space=True):
         if self.n_networks == 7:
-            values = ['Visual', 'Somatomotor', 'Dorsal\nAttention', 'Salience', 'Limbic', 'FPC', 'DMN']
+            values = ['Visual', 'Somatomotor', 'Dorsal Attention', 'Salience', 'Limbic', 'FPC', 'DMN']
         else:
             raise NotImplementedError(f"Network labels for SCHAEFER with {self.n_networks} networks is not defined ")
-
-        if break_space:
-            return break_space_func(values)
+        return break_space_func(values) if break_space else values
 
     @property
     def net_colors(self):
@@ -177,10 +175,9 @@ class ColeTemplateMap(TemplateMap):
         raise NotImplementedError(f"{self.name} and {name} is not defined")
 
     def net_labels(self, break_space=True):
-        values = ['Visual1', 'Visual2', 'Auditory', 'Somatomotor', 'Posterior\nMultimodal', 'Ventral\nMultimodal',
-                  'Orbito\nAffective', 'Dorsal\nAttention', 'Language', 'Cingulo\nOpercular', 'FPC', 'DMN']
-        if break_space:
-            return break_space_func(values)
+        values = ['Visual1', 'Visual2', 'Auditory', 'Somatomotor', 'Posterior Multimodal', 'Ventral Multimodal',
+                  'Orbito Affective', 'Dorsal Attention', 'Language', 'Cingulo Opercular', 'FPC', 'DMN']
+        return break_space_func(values) if break_space else values
 
     @property
     def net_colors(self):
@@ -212,7 +209,7 @@ class ColeTemplateMap(TemplateMap):
 
 class WangTemplateMap(TemplateMap):
     def __init__(self, space: Space):
-        super().__init__(TemplateName.COLE_360, space)
+        super().__init__(TemplateName.WANG, space)
 
     @property
     def net_order(self):

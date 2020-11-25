@@ -18,7 +18,7 @@ def value_or_raise(data: dict, key: str, msg: str):
 
 
 def break_space(values):
-    return [x.replace("\n", " ") for x in values]
+    return [x.replace(" ", "\n") for x in values]
 
 
 def out_of(name, dir_from_last_part=True):

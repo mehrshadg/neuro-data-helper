@@ -1,3 +1,5 @@
+import collections
+
 import os
 import cifti
 
@@ -27,10 +29,12 @@ def savefig(fig, name, bbox_inches="tight", extra_artists=(), low=False, transpa
     return os.getcwd() + os.sep + file_path
 
 
-def savemap(name, data, brain_mask, directory="figures", *axes):
+def savemap(name, data, brain_mask, axes, directory="figures"):
     if not os.path.exists(directory):
         os.makedirs(directory)
     file_path = f"{directory}/{name}.dtseries.nii"
     # noinspection PyTypeChecker
+    if not isinstance(axes, collections.Iterable):
+        axes = (axes, )
     cifti.write(file_path, data, axes + (brain_mask,))
     return os.getcwd() + os.sep + file_path

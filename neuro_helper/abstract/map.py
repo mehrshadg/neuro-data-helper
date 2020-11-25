@@ -154,7 +154,7 @@ class AbstractMap(ABC):
 
 
 class TemplateMap(AbstractMap, ABC):
-    name: TemplateName
+    _name: TemplateName
     _data: TemplateData
 
     @property
@@ -163,7 +163,12 @@ class TemplateMap(AbstractMap, ABC):
 
     def __init__(self, name: TemplateName, space: Space):
         super().__init__(space)
-        self.name = name
+        self._name = name
+        self._data = None
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     @abstractmethod
@@ -200,7 +205,7 @@ class TemplateMap(AbstractMap, ABC):
 
 
 class TopoMap(AbstractMap, ABC):
-    name: TopoName
+    _name: TopoName
     template: TemplateMap
     _data: DataFrame
 
@@ -216,9 +221,15 @@ class TopoMap(AbstractMap, ABC):
     def key(self):
         return f"{self.name}:{super().key}"
 
+    @property
+    def name(self):
+        return self._name
+
     def __init__(self, name: TopoName, template: TemplateMap):
         super().__init__(template.space)
-        self.name = name
+        self._name = name
+        self._data = None
+        self.template = template
 
     def __str__(self):
         return f"{super()} - Template: {self.template}"

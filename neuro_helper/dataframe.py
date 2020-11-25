@@ -172,7 +172,7 @@ def calc_percentage_change(x, column="task", from_="Rest", on="metric"):
     for t in x[column].unique():
         if t == from_:
             continue
-        output.append([t, percent_change(from_val, x[x[column] == t].metric.item())])
+        output.append([t, percent_change(from_val, x[x[column] == t][on].item())])
     df = pd.DataFrame(output, columns=[column, "pchange"])
     df.pchange = df.pchange.astype(float)
     return df
@@ -201,3 +201,19 @@ def concat_dfs(by, on, new_col="cat", **dfs):
         df = df.append(temp, ignore_index=True, sort=False)
 
     return df.reset_index(drop=True)
+
+
+@pf.register_series_method
+def long_column_to_wide(df, column, based):
+    options = df[based].unique()
+    wide = None
+    on = list(df.columns)
+    on.remove(based)
+    on.remove(column)
+    for opt in options:
+        opt_df = df.and_filter(**{based: opt}).rename(columns={column: f"{column}_{opt}"})
+        if wide is None:
+            wide = opt_df
+        else:
+            wide = pd.merge(wide, opt_df, on=on)
+    return wide
