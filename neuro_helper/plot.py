@@ -20,11 +20,12 @@ def triple_colors(ret_tuple=False):
         return "#5975a4", "#cc8963", "#5f9e6e"
 
 
-def savefig(fig, name, bbox_inches="tight", extra_artists=(), low=False, transparent=False, directory="figures"):
+def savefig(fig, name, bbox_inches="tight", extra_artists=(), low=False,
+            transparent=False, directory="figures", ext="svg"):
     dpi = 80 if low else 600
     if not os.path.exists(directory):
         os.makedirs(directory)
-    file_path = f"{directory}/{name}.png"
+    file_path = f"{directory}/{name}.{ext}"
     fig.savefig(file_path, dpi=dpi, transparent=transparent, bbox_inches=bbox_inches, bbox_extra_artists=extra_artists)
     return os.getcwd() + os.sep + file_path
 

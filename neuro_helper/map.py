@@ -78,13 +78,13 @@ class AntPostTopo(TopoMap):
         if self.loaded:
             return
         self.template()
-        voxels = cifti.read(self.file_full_path)[0].squeeze()
+        voxels = cifti.read(self.file_full_path)[0][:, self.medial_wall_mask == 0]
         mask_no_wall = self.template.data.mask[self.medial_wall_mask == 0]
         topo = DataFrame({"region": Series(dtype=str), "network": Series(dtype=str),
                           "coord_x": Series(dtype=float), "coord_y": Series(dtype=float),
                           "coord_z": Series(dtype=float)})
         for i, (reg, net) in enumerate(zip(self.template.data.regions, self.template.data.networks)):
-            x, y, z = voxels[mask_no_wall == i + 1, :].mean(axis=0)
+            x, y, z = voxels[:, mask_no_wall == i + 1].mean(axis=1)
             topo.loc[i, :] = reg, net, x, y, z
         self._data = topo
 
