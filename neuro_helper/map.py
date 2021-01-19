@@ -46,7 +46,7 @@ class T1T2Topo(TopoMap):
         if self.loaded:
             return
         self.template()
-        voxels = cifti.read(self.file_full_path)[0].squeeze()
+        voxels = cifti.read(self.file_full_path)[0][:, self.medial_wall_mask == 0].squeeze()
         mask_no_wall = self.template.data.mask[self.medial_wall_mask == 0]
         topo = DataFrame({"region": Series(dtype=str), "network": Series(dtype=str), "t1t2": Series(dtype=float)})
         for i, (reg, net) in enumerate(zip(self.template.data.regions, self.template.data.networks)):
@@ -62,7 +62,7 @@ class MarguliesGradientTopo(TopoMap):
         if self.loaded:
             return
         self.template()
-        voxels = cifti.read(self.file_full_path)[0].squeeze()
+        voxels = cifti.read(self.file_full_path)[0][:, self.medial_wall_mask == 0].squeeze()
         mask_no_wall = self.template.data.mask[self.medial_wall_mask == 0]
         topo = DataFrame({"region": Series(dtype=str), "network": Series(dtype=str), "gradient": Series(dtype=float)})
         for i, (reg, net) in enumerate(zip(self.template.data.regions, self.template.data.networks)):

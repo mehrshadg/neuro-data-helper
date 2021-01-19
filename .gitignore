@@ -1,9 +1,8 @@
 .idea
+.eggs
 env
 dist
 neuro_helper.egg-info
 build
-__pycache__
-*/__pycache__/
-.DS_Store
-*/.DS_Store
+**/__pycache__
+**/.DS_Store

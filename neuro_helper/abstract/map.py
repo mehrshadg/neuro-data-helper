@@ -197,10 +197,13 @@ class TemplateMap(AbstractMap, ABC):
             mask = np.append(mask, np.zeros(voxels.shape[0] - mask.size))
         elif voxels.shape[0] < mask.size:
             raise ValueError("Mask size is smaller than data size. Something is fishy here!")
-
+        mask_unique = np.unique(mask)
+        mask_unique = mask_unique[mask_unique != 0]
+        if not mask_unique.size == len(regions):
+            raise ValueError("Number of unique values in the mask is not equal to the number of regions")
         output = np.zeros((len(regions), voxels.shape[1]))
-        for ri in range(len(regions)):
-            output[ri] = voxels[mask == ri + 1].mean()
+        for i, ri in enumerate(mask_unique):
+            output[i] = voxels[mask == ri].mean()
         return output
 
 
