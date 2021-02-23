@@ -203,7 +203,7 @@ class TemplateMap(AbstractMap, ABC):
             raise ValueError("Number of unique values in the mask is not equal to the number of regions")
         output = np.zeros((len(regions), voxels.shape[1]))
         for i, ri in enumerate(mask_unique):
-            output[i] = voxels[mask == ri].mean()
+            output[i] = voxels[mask == ri].mean(axis=0)
         return output
 
 

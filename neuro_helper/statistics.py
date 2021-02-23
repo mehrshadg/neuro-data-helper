@@ -166,3 +166,15 @@ def icc(y, icc_type='icc2'):
         raise ValueError(f"{icc_type} is not defined.")
 
     return icc_value
+
+
+def get_z_for_mannwhitneyu(u, n1, n2):
+    return np.abs((u - (n1 * n2 / 2)) / np.sqrt(n1 * n2 * (n1 + n2 + 1) / 12))
+
+
+def get_z_for_wilcoxon(W, n):
+    return np.abs((W - (n * (n + 1))) / np.sqrt(n * (n + 1) * (2 * n + 1) / 24))
+
+
+def get_eta2_for_z(z, n):
+    return np.abs(z * z / n)

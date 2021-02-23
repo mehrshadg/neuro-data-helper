@@ -226,7 +226,33 @@ class WangTemplateMap(TemplateMap):
 
     @property
     def net_colors(self):
-        raise NotImplementedError(f"Colors are not defined for Wang template")
+        return [
+            "#c0c0c0",
+            "#556b2f",
+            "#8b4513",
+            "#483d8b",
+            "#008000",
+            "#008b8b",
+            "#000080",
+            "#9acd32",
+            "#8b008b",
+            "#ff4500",
+            "#ffa500",
+            "#ffff00",
+            "#7cfc00",
+            "#00ff7f",
+            "#dc143c",
+            "#00bfff",
+            "#0000ff",
+            "#ff00ff",
+            "#1e90ff",
+            "#db7093",
+            "#f0e68c",
+            "#ff1493",
+            "#ffa07a",
+            "#ee82ee",
+            "#7fffd4"
+        ]
 
     def load(self):
         if not self.loaded:
