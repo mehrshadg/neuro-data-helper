@@ -95,13 +95,14 @@ def calc_a_lzc(ts, norm_factor=None):
     """
     Calculates lempel-ziv complexity of a single time series.
     :param ts: a time-series: nx1
-    :param norm_factor: the normalization factor. If none, the default value will be calculated: n / ln(n)
+    :param norm_factor: the normalization factor. If none, the output will not be normalized
     :return: the lempel-ziv complexity
     """
-    if not norm_factor:
-        norm_factor = calc_lzc_norm_factor(ts)
     bin_ts = np.char.mod('%i', ts >= np.median(ts))
-    return lempel_ziv_complexity("".join(bin_ts)) / norm_factor
+    value = lempel_ziv_complexity("".join(bin_ts))
+    if norm_factor:
+        value /= norm_factor
+    return value
 
 
 def calc_lzc(data, norm_factor=None, n_job=None, threading=False):
