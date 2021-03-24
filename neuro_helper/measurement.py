@@ -134,40 +134,41 @@ def calc_ple(psd, freq, is_log=False, n_job=None, threading=False):
 
 def calc_peak(data, fs, low, high, apply_median_filter, n_job=None):
     data, freq_l, freq_h = fir_filter(data, fs, max_freq_low=low, min_freq_high=high, pass_type="bp")
-    n_wave, n_sample = data.shape
-    hilb_data = hilbert(data, n_sample, axis=0)
+    hilb_data = hilbert(data)
     phase = np.angle(hilb_data)
     instant_freq = fs * np.diff(np.unwrap(phase)) / (2 * np.pi)
 
     if not apply_median_filter:
         return instant_freq
 
+    n_wave, n_sample = instant_freq.shape
     # apply median filter to attenuate large "blips" in instantaneous frequency
     n_window = 10
     win_lengths = np.round(np.linspace(10, 400, n_window) * fs / (2 * 1000)).astype(int)
 
     def win_calc(wl_, si_):
-        start, stop = max(si_ - wl_, 0), min(si_ + wl_, n_sample)
+        start, stop = max(si_ - wl_, 0), min(si_ + wl_, n_sample - 1)
         return np.median(np.sort(instant_freq[:, start: stop], axis=1), axis=1)
 
     n_job = n_job if n_job else 10
     phased_med = np.zeros((n_window, n_sample, n_wave))
     for wi, wl in enumerate(win_lengths):
         phased_med[wi, :, :] = np.asarray(Parallel(n_jobs=n_job)(delayed(win_calc)(wl, si) for si in range(n_sample)))
-        # for si in range(n_sample):
-        #     start, stop = max(si - win_lengths[wi], 0), min(si + win_lengths[wi], n_sample)
-        #     phased_med[wi, si, :] = np.median(np.sort(instant_freq[:, start: stop], axis=1), axis=1)
 
     sliding_instant_freq = np.mean(phased_med, axis=0).T
     return sliding_instant_freq
 
 
-def calc_ratio_occurrence(data_a, data_b, decimals=0, axis=None):
+def calc_ratio_occurrence(data_a, data_b, decimals=0, axis=None, n_job=None):
     precision = 1 / 10 ** decimals
     data_r = np.round(data_a / data_b, decimals)
     possible_ratios = np.arange(data_r.min(), data_r.max() + precision, precision)
+    possible_ratios = np.round(possible_ratios, decimals) # to get rid of floating point error
     normalization_coeff = data_r.size if axis is None else data_r.shape[axis]
-    return np.asarray([
-        np.sum(data_r == np.round(ratio, decimals), axis=axis) / normalization_coeff * 100
-        for ri, ratio in enumerate(possible_ratios)
-    ])
+
+    def do_work(ratio):
+        print(f"doing {ratio}")
+        return np.sum(data_r == np.round(ratio, decimals), axis=axis) / normalization_coeff * 100
+
+    n_job = n_job if n_job else 10
+    return np.asarray(Parallel(n_jobs=n_job)(delayed(do_work)(ratio) for ratio in possible_ratios))
