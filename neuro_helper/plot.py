@@ -1,9 +1,8 @@
-import collections
+__all__ = ["paired_colors", "triple_colors", "savefig", "savemap"]
 
+import collections
 import os
 import cifti
-
-__all__ = ["paired_colors", "triple_colors", "savefig", "savemap"]
 
 
 def paired_colors(ret_tuple=False):

@@ -1,7 +1,6 @@
-from neuro_helper.abstract.map import Space
-
-
 __all__ = ["task_order"]
+
+from neuro_helper.abstract import Space
 
 
 def task_order(space: Space, with_rest=True):

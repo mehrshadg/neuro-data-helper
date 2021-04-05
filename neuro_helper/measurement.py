@@ -1,3 +1,9 @@
+__all__ = [
+    "_calc_parallel", "lempel_ziv_complexity", "calc_acf", "calc_a_acf", "calc_a_acw", "calc_acw",
+    "calc_a_acz", "calc_acz", "calc_a_acmi", "calc_acmi", "calc_a_acf_peaks", "calc_acf_peaks", "calc_lzc_norm_factor",
+    "calc_a_lzc", "calc_lzc", "calc_mf", "calc_a_ple", "calc_ple", "calc_peak", "calc_ratio_occurrence"
+]
+
 import numpy as np
 from joblib import Parallel, delayed
 from scipy import signal
@@ -163,7 +169,7 @@ def calc_ratio_occurrence(data_a, data_b, decimals=0, axis=None, n_job=None):
     precision = 1 / 10 ** decimals
     data_r = np.round(data_a / data_b, decimals)
     possible_ratios = np.arange(data_r.min(), data_r.max() + precision, precision)
-    possible_ratios = np.round(possible_ratios, decimals) # to get rid of floating point error
+    possible_ratios = np.round(possible_ratios, decimals)  # to get rid of floating point error
     normalization_coeff = data_r.size if axis is None else data_r.shape[axis]
 
     def do_work(ratio):

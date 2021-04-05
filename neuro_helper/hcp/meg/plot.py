@@ -1,3 +1,6 @@
+__all__ = ["task_colors"]
+
+
 def task_colors(with_rest=False):
     colors = ["#f032e6", "#aaffc3", "#637687"]
     if with_rest:

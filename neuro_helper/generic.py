@@ -1,13 +1,12 @@
+__all__ = ["value_or_raise", "break_space", "out_of", "find_shared_subjects",
+           "generate_long_data", "build_single_topo_map", "combine_topo_map"]
+
 import os
 import numpy as np
 import cifti
 from pandas import DataFrame
 from neuro_helper.abstract.map import TemplateMap
 import pandas_flavor as pf
-
-
-__all__ = ["value_or_raise", "break_space", "out_of", "find_shared_subjects",
-           "generate_long_data", "build_single_topo_map", "combine_topo_map"]
 
 
 def value_or_raise(data: dict, key: str, msg: str):

@@ -1,12 +1,12 @@
+__all__ = ["Space", "TopoName", "TemplateName", "HierarchyName", "TemplateData",
+           "AbstractMap", "TemplateMap", "TopoMap", "file_names"]
+
 from abc import abstractmethod, ABC
 from neuro_helper.assets import manager
 from enum import Enum
 from pandas import DataFrame
 import numpy as np
 import cifti
-
-__all__ = ["Space", "TopoName", "TemplateName", "HierarchyName", "TemplateData",
-           "AbstractMap", "TemplateMap", "TopoMap", "file_names"]
 
 
 class Space(Enum):

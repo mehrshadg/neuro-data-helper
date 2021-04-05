@@ -1,12 +1,12 @@
+__all__ = ["MapMemory", "T1T2Topo", "MarguliesGradientTopo", "AntPostTopo",
+           "SchaeferTemplateMap", "ColeTemplateMap", "WangTemplateMap"]
+
 import numpy as np
 import cifti
 from pandas import DataFrame, Series
 from neuro_helper.abstract.map import *
 from neuro_helper.generic import value_or_raise
 from neuro_helper.generic import break_space as break_space_func
-
-__all__ = ["MapMemory", "T1T2Topo", "MarguliesGradientTopo", "AntPostTopo",
-           "SchaeferTemplateMap", "ColeTemplateMap", "WangTemplateMap"]
 
 
 class MapMemory:

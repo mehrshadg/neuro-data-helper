@@ -20,11 +20,10 @@ A Python wrapper for rclone.
 
 # pylint: disable=W0102,W0703,C0103
 
+__all__ = ["RClone"]
+
 import logging
 import subprocess
-
-
-__all__ = ["RClone"]
 
 
 class RClone:

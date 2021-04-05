@@ -1,6 +1,6 @@
-from neuro_helper.abstract.map import Space
-
 __all__ = ["task_colors"]
+
+from neuro_helper.abstract.map import Space
 
 
 def task_colors(space: Space, with_rest=False):

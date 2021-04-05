@@ -1,11 +1,11 @@
+__all__ = ["FMRILocalStorage", "load_raw_file", "load_raw_files", "concat_scans", "average_scans"]
+
 import os
 import cifti
 import numpy as np
 
-from neuro_helper.abstract.map import Space
+from neuro_helper.abstract import Space
 from neuro_helper.storage import LocalStorage, ANYTHING, StorageFile
-
-__all__ = ["FMRILocalStorage", "load_raw_file", "load_raw_files", "concat_scans", "average_scans"]
 
 
 class FMRILocalStorage(LocalStorage):

@@ -1,8 +1,7 @@
+__all__ = ["fir_filter", "welch_psd", "percent_change", "anova_table", "cohend", "icc"]
+
 import numpy as np
 from scipy import signal, stats
-
-
-__all__ = ["fir_filter", "welch_psd", "percent_change", "anova_table", "cohend", "icc"]
 
 
 def fir_filter(data, fs, order=None, min_cycles=4, max_freq_low=None, min_freq_high=None, pass_type="bp"):

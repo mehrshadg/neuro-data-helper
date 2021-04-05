@@ -1,11 +1,10 @@
+__all__ = ["MEGLocalStorage", "MEGRCloneStorage", "load_raw_file"]
+
 import re
 from scipy.io import loadmat
 import numpy as np
-from neuro_helper.abstract.map import TemplateName
+from neuro_helper.abstract import TemplateName
 from neuro_helper.storage import LocalStorage, StorageFile, ANYTHING, RCloneStorage
-
-
-__all__ = ["MEGLocalStorage", "MEGRCloneStorage", "load_raw_file"]
 
 
 class MEGLocalStorage(LocalStorage):
